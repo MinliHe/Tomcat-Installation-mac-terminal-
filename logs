@@ -1,0 +1,174 @@
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Server version name:   Apache Tomcat/7.0.107
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Server built:          Nov 18 2020 12:18:55 UTC
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Server version number: 7.0.107.0
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: OS Name:               Mac OS X
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: OS Version:            10.15.6
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Architecture:          x86_64
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Java Home:             /Library/Java/JavaVirtualMachines/jdk1.8.0_161.jdk/Contents/Home/jre
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: JVM Version:           1.8.0_161-b12
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: JVM Vendor:            Oracle Corporation
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: CATALINA_BASE:         /Users/minlihe/Downloads/apache-tomcat-7.0.107
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: CATALINA_HOME:         /Users/minlihe/Downloads/apache-tomcat-7.0.107
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Command line argument: -Djava.util.logging.config.file=/Users/minlihe/Downloads/apache-tomcat-7.0.107/conf/logging.properties
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Command line argument: -Dorg.apache.catalina.security.SecurityListener.UMASK=0027
+Dec 02, 2020 1:56:57 PM org.apache.catalina.0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:00:47 -0800] "GET / HTTP/1.1" 200 11416
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:00:47 -0800] "GET /tomcat.png HTTP/1.1" 200 5103
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:00:47 -0800] "GET /tomcat.css HTTP/1.1" 200 5931
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:00:47 -0800] "GET /bg-nav.png HTTP/1.1" 200 1401
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:00:47 -0800] "GET /asf-logo-wide.svg HTTP/1.1" 200 27530
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:00:47 -0800] "GET /bg-button.png HTTP/1.1" 200 713
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:00:47 -0800] "GET /bg-middle.png HTTP/1.1" 200 1918
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:00:47 -0800] "GET /bg-upper.png HTTP/1.1" 200 3103
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:00:47 -0800] "GET /favicon.ico HTTP/1.1" 200 21630
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:17:15 -0800] "GET / HTTP/1.1" 200 11416Dec 02, 2020 1:56:59 PM org.apache.catalina.core.ApplicationContext log
+INFO: ContextListener: contextInitialized()
+Dec 02, 2020 1:56:59 PM org.apache.catalina.core.ApplicationContext log
+INFO: SessionListener: contextInitialized()
+Dec 02, 2020 1:56:59 PM org.apache.catalina.core.ApplicationContext log
+INFO: ContextListener: attributeAdded('StockTicker', 'async.Stockticker@30ec0824')
+Dec 02, 2020 1:56:59 PM org.apache.catalina.core.ApplicationContext log
+INFO: ContextListener: attributeAdded('org.apache.jasper.compiler.TldLocationsCache', 'org.apache.jasper.compiler.TldLocationsCache@4b24f61')
+
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:17:18 -0800] "GET /manager/status HTTP/1.1" 401 2562
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:18:12 -0800] "GET /manager/status HTTP/1.1" 401 2562
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:18:26 -0800] "GET /manager/status HTTP/1.1" 401 2562
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:19:13 -0800] "GET /manager/status HTTP/1.1" 401 2562
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:19:19 -0800] "GET /manager/status HTTP/1.1" 401 2562
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:19:28 -0800] "GET /manager/status HTTP/1.1" 401 2562
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:19:29 -0800] "GET /favicon.ico HTTP/1.1" 200 21630
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:20:37 -0800] "GET /host-manager/html HTTP/1.1" 401 2098
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:20:46 -0800] "GET /host-manager/html HTTP/1.1" 401 2098
+0:0:0:0:0:0:0:1 - - [02/Dec/2020:14:20:54 -0800] "GET /host-manager/html HTTP/1.1" 401 2098
+startup.VersionLoggerListener log
+INFO: Command line argument: -Dignore.endorsed.dirs=
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Command line argument: -Dcatalina.base=/Users/minlihe/Downloads/apache-tomcat-7.0.107
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Command line argument: -Dcatalina.home=/Users/minlihe/Downloads/apache-tomcat-7.0.107
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Command line argument: -Djava.io.tmpdir=/Users/minlihe/Downloads/apache-tomcat-7.0.107/temp
+Dec 02, 2020 1:56:57 PM org.apache.catalina.core.AprLifecycleListener lifecycleEvent
+INFO: The Apache Tomcat Native library which allows using OpenSSL was not found on the java.library.path: [/Users/minlihe/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:.]
+Dec 02, 2020 1:56:58 PM org.apache.coyote.AbstractProtocol init
+INFO: Initializing ProtocolHandler ["http-bio-8080"]
+Dec 02, 2020 1:56:58 PM org.apache.catalina.startup.Catalina load
+INFO: Initialization processed in 1367 ms
+Dec 02, 2020 1:56:58 PM org.apache.catalina.core.StandardService startInternal
+INFO: Starting service [Catalina]
+Dec 02, 2020 1:56:58 PM org.apache.catalina.core.StandardEngine startInternal
+INFO: Starting Servlet Engine: Apache Tomcat/7.0.107
+Dec 02, 2020 1:56:58 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deploying web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/docs]
+Dec 02, 2020 1:56:58 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deployment of web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/docs] has finished in [493] ms
+Dec 02, 2020 1:56:58 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deploying web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/manager]
+Dec 02, 2020 1:56:58 PM org.apache.catalina.startup.HostConfig/Users/minlihe/Downloads/apache-tomcat-7.0.107/bin/catalina.sh: line 498: /usr/lib/jvm/default-jave/bin/java: No such file or directory
+/Users/minlihe/DOWNLOADS/apache-tomcat-7.0.107/bin/catalina.sh: line 498: /usr/lib/jvmdefault-java/bin/java: No such file or directory
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Server version name:   Apache Tomcat/7.0.107
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Server built:          Nov 18 2020 12:18:55 UTC
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Server version number: 7.0.107.0
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: OS Name:               Mac OS X
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: OS Version:            10.15.6
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Architecture:          x86_64
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Java Home:             /Library/Java/JavaVirtualMachines/jdk1.8.0_161.jdk/Contents/Home/jre
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: JVM Version:           1.8.0_161-b12
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: JVM Vendor:            Oracle Corporation
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: CATALINA_BASE:         /Users/minlihe/Downloads/apache-tomcat-7.0.107
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: CATALINA_HOME:         /Users/minlihe/Downloads/apache-tomcat-7.0.107
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Command line argument: -Djava.util.logging.config.file=/Users/minlihe/Downloads/apache-tomcat-7.0.107/conf/logging.properties
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Command line argument: -Dorg.apache.catalina.security.SecurityListener.UMASK=0027
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Command line argument: -Dignore.endorsed.dirs=
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Command line argument: -Dcatalina.base=/Users/minlihe/Downloads/apache-tomcat-7.0.107
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Command line argument: -Dcatalina.home=/Users/minlihe/Downloads/apache-tomcat-7.0.107
+Dec 02, 2020 1:56:57 PM org.apache.catalina.startup.VersionLoggerListener log
+INFO: Command line argument: -Djava.io.tmpdir=/Users/minlihe/Downloads/apache-tomcat-7.0.107/temp
+Dec 02, 2020 1:56:57 PM org.apache.catalina.core.AprLifecycleListener lifecycleEvent
+INFO: The Apache Tomcat Native library which allows using OpenSSL was not found on the java.library.path: [/Users/minlihe/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:.]
+Dec 02, 2020 1:56:58 PM org.apache.coyote.AbstractProtocol init
+INFO: Initializing ProtocolHandler ["http-bio-8080"]
+Dec 02, 2020 1:56:58 PM org.apache.catalina.startup.Catalina load
+INFO: Initialization processed in 1367 ms
+Dec 02, 2020 1:56:58 PM org.apache.catalina.core.StandardService startInternal
+INFO: Starting service [Catalina]
+Dec 02, 2020 1:56:58 PM org.apache.catalina.core.StandardEngine startInternal
+INFO: Starting Servlet Engine: Apache Tomcat/7.0.107
+Dec 02, 2020 1:56:58 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deploying web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/docs]
+Dec 02, 2020 1:56:58 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deployment of web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/docs] has finished in [493] ms
+Dec 02, 2020 1:56:58 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deploying web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/manager]
+Dec 02, 2020 1:56:58 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deployment of web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/manager] has finished in [153] ms
+Dec 02, 2020 1:56:58 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deploying web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/examples]
+Dec 02, 2020 1:56:59 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deployment of web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/examples] has finished in [602] ms
+Dec 02, 2020 1:56:59 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deploying web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/ROOT]
+Dec 02, 2020 1:56:59 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deployment of web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/ROOT] has finished in [49] ms
+Dec 02, 2020 1:56:59 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deploying web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/host-manager]
+Dec 02, 2020 1:56:59 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deployment of web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/host-manager] has finished in [57] ms
+Dec 02, 2020 1:56:59 PM org.apache.coyote.AbstractProtocol start
+INFO: Starting ProtocolHandler ["http-bio-8080"]
+Dec 02, 2020 1:56:59 PM org.apache.catalina.startup.Catalina start
+INFO: Server startup in 1442 ms
+ deployDirectory
+INFO: Deployment of web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/manager] has finished in [153] ms
+Dec 02, 2020 1:56:58 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deploying web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/examples]
+Dec 02, 2020 1:56:59 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deployment of web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/examples] has finished in [602] ms
+Dec 02, 2020 1:56:59 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deploying web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/ROOT]
+Dec 02, 2020 1:56:59 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deployment of web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/ROOT] has finished in [49] ms
+Dec 02, 2020 1:56:59 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deploying web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/host-manager]
+Dec 02, 2020 1:56:59 PM org.apache.catalina.startup.HostConfig deployDirectory
+INFO: Deployment of web application directory [/Users/minlihe/Downloads/apache-tomcat-7.0.107/webapps/host-manager] has finished in [57] ms
+Dec 02, 2020 1:56:59 PM org.apache.coyote.AbstractProtocol start
+INFO: Starting ProtocolHandler ["http-bio-8080"]
+Dec 02, 2020 1:56:59 PM org.apache.catalina.startup.Catalina start
+INFO: Server startup in 1442 ms
