@@ -1,0 +1,2464 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<!--
+  XML file for importing Catalina ant tasks.
+  <import file="${catalina.home}/bin/catalina-tasks.xml"/>
+-->
+
+<project name="catalina-tasks">
+  <description>Catalina Ant Manager, JMX and JSPC Tasks</description>
+  <!-- set catalina.home if it's not already set -->
+  <dirname property="catalina.home.bin.dir" file="${ant.file.catalina-tasks}"/>
+  <property name="catalina.home" value="${catalina.home.bin.dir}/.."/>
+  <typedef resource="org/apache/catalina/ant/catalina.tasks">
+    <classpath>
+      <fileset file="${catalina.home}/bin/tomcat-juli.jar"/>
+      <fileset dir="${catalina.home}/lib" includes="*.jar"/>
+    </classpath>
+  </typedef>
+  <typedef resource="org/apache/catalina/ant/jmx/jmxaccessor.tasks">
+    <classpath>
+      <fileset file="${catalina.home}/lib/catalina-ant.jar"/>
+    </classpath>
+  </typedef>
+</project>
+
+@echo off
+rem Licensed to the Apache Software Foundation (ASF) under one or more
+rem contributor license agreements.  See the NOTICE file distributed with
+rem this work for additional information regarding copyright ownership.
+rem The ASF licenses this file to You under the Apache License, Version 2.0
+rem (the "License"); you may not use this file except in compliance with
+rem the License.  You may obtain a copy of the License at
+rem
+rem     http://www.apache.org/licenses/LICENSE-2.0
+rem
+rem Unless required by applicable law or agreed to in writing, software
+rem distributed under the License is distributed on an "AS IS" BASIS,
+rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+rem See the License for the specific language governing permissions and
+rem limitations under the License.
+
+rem ---------------------------------------------------------------------------
+rem Start/Stop Script for the CATALINA Server
+rem
+rem For supported commands call "catalina.bat help" or see the usage section
+rem towards the end of this file.
+rem
+rem Environment Variable Prerequisites
+rem
+rem   Do not set the variables in this script. Instead put them into a script
+rem   setenv.bat in CATALINA_BASE/bin to keep your customizations separate.
+rem
+rem   WHEN RUNNING TOMCAT AS A WINDOWS SERVICE:
+rem   Note that the environment variables that affect the behavior of this
+rem   script will have no effect at all on Windows Services. As such, any
+rem   local customizations made in a CATALINA_BASE/bin/setenv.bat script
+rem   will also have no effect on Tomcat when launched as a Windows Service.
+rem   The configuration that controls Windows Services is stored in the Windows
+rem   Registry, and is most conveniently maintained using the "tomcat7w.exe"
+rem   maintenance utility.
+rem
+rem   CATALINA_HOME   May point at your Catalina "build" directory.
+rem
+rem   CATALINA_BASE   (Optional) Base directory for resolving dynamic portions
+rem                   of a Catalina installation.  If not present, resolves to
+rem                   the same directory that CATALINA_HOME points to.
+rem
+rem   CATALINA_OPTS   (Optional) Java runtime options used when the "start",
+rem                   "run" or "debug" command is executed.
+rem                   Include here and not in JAVA_OPTS all options, that should
+rem                   only be used by Tomcat itself, not by the stop process,
+rem                   the version command etc.
+rem                   Examples are heap size, GC logging, JMX ports etc.
+rem
+rem   CATALINA_TMPDIR (Optional) Directory path location of temporary directory
+rem                   the JVM should use (java.io.tmpdir).  Defaults to
+rem                   %CATALINA_BASE%\temp.
+rem
+rem   JAVA_HOME       Must point at your Java Development Kit installation.
+rem                   Required to run the with the "debug" argument.
+rem
+rem   JRE_HOME        Must point at your Java Runtime installation.
+rem                   Defaults to JAVA_HOME if empty. If JRE_HOME and JAVA_HOME
+rem                   are both set, JRE_HOME is used.
+rem
+rem   JAVA_OPTS       (Optional) Java runtime options used when any command
+rem                   is executed.
+rem                   Include here and not in CATALINA_OPTS all options, that
+rem                   should be used by Tomcat and also by the stop process,
+rem                   the version command etc.
+rem                   Most options should go into CATALINA_OPTS.
+rem
+rem   JAVA_ENDORSED_DIRS (Optional) Lists of of semi-colon separated directories
+rem                   containing some jars in order to allow replacement of APIs
+rem                   created outside of the JCP (i.e. DOM and SAX from W3C).
+rem                   It can also be used to update the XML parser implementation.
+rem                   This is only supported for Java <= 8.
+rem                   Defaults to $CATALINA_HOME/endorsed.
+rem
+rem   JPDA_TRANSPORT  (Optional) JPDA transport used when the "jpda start"
+rem                   command is executed. The default is "dt_socket".
+rem
+rem   JPDA_ADDRESS    (Optional) Java runtime options used when the "jpda start"
+rem                   command is executed. The default is localhost:8000.
+rem
+rem   JPDA_SUSPEND    (Optional) Java runtime options used when the "jpda start"
+rem                   command is executed. Specifies whether JVM should suspend
+rem                   execution immediately after startup. Default is "n".
+rem
+rem   JPDA_OPTS       (Optional) Java runtime options used when the "jpda start"
+rem                   command is executed. If used, JPDA_TRANSPORT, JPDA_ADDRESS,
+rem                   and JPDA_SUSPEND are ignored. Thus, all required jpda
+rem                   options MUST be specified. The default is:
+rem
+rem                   -agentlib:jdwp=transport=%JPDA_TRANSPORT%,
+rem                       address=%JPDA_ADDRESS%,server=y,suspend=%JPDA_SUSPEND%
+rem
+rem   JSSE_OPTS       (Optional) Java runtime options used to control the TLS
+rem                   implementation when JSSE is used. Default is:
+rem                   "-Djdk.tls.ephemeralDHKeySize=2048"
+rem
+rem   CATALINA_LOGGING_CONFIG (Optional) Override Tomcat's logging config file
+rem                   Example (all one line)
+rem                   set CATALINA_LOGGING_CONFIG="-Djava.util.logging.config.file=%CATALINA_BASE%\conf\logging.properties"
+rem
+rem   LOGGING_CONFIG  Deprecated
+rem                   Use CATALINA_LOGGING_CONFIG
+rem                   This is only used if CATALINA_LOGGING_CONFIG is not set
+rem                   and LOGGING_CONFIG starts with "-D..."
+rem
+rem   LOGGING_MANAGER (Optional) Override Tomcat's logging manager
+rem                   Example (all one line)
+rem                   set LOGGING_MANAGER="-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager"
+rem
+rem   TITLE           (Optional) Specify the title of Tomcat window. The default
+rem                   TITLE is Tomcat if it's not specified.
+rem                   Example (all one line)
+rem                   set TITLE=Tomcat.Cluster#1.Server#1 [%DATE% %TIME%]
+rem ---------------------------------------------------------------------------
+
+setlocal
+
+rem Suppress Terminate batch job on CTRL+C
+if not ""%1"" == ""run"" goto mainEntry
+if "%TEMP%" == "" goto mainEntry
+if exist "%TEMP%\%~nx0.run" goto mainEntry
+echo Y>"%TEMP%\%~nx0.run"
+if not exist "%TEMP%\%~nx0.run" goto mainEntry
+echo Y>"%TEMP%\%~nx0.Y"
+call "%~f0" %* <"%TEMP%\%~nx0.Y"
+rem Use provided errorlevel
+set RETVAL=%ERRORLEVEL%
+del /Q "%TEMP%\%~nx0.Y" >NUL 2>&1
+exit /B %RETVAL%
+:mainEntry
+del /Q "%TEMP%\%~nx0.run" >NUL 2>&1
+
+rem Guess CATALINA_HOME if not defined
+set "CURRENT_DIR=%cd%"
+if not "%CATALINA_HOME%" == "" goto gotHome
+set "CATALINA_HOME=%CURRENT_DIR%"
+if exist "%CATALINA_HOME%\bin\catalina.bat" goto okHome
+cd ..
+set "CATALINA_HOME=%cd%"
+cd "%CURRENT_DIR%"
+:gotHome
+
+if exist "%CATALINA_HOME%\bin\catalina.bat" goto okHome
+echo The CATALINA_HOME environment variable is not defined correctly
+echo This environment variable is needed to run this program
+goto end
+:okHome
+
+rem Copy CATALINA_BASE from CATALINA_HOME if not defined
+if not "%CATALINA_BASE%" == "" goto gotBase
+set "CATALINA_BASE=%CATALINA_HOME%"
+:gotBase
+
+rem Ensure that neither CATALINA_HOME nor CATALINA_BASE contains a semi-colon
+rem as this is used as the separator in the classpath and Java provides no
+rem mechanism for escaping if the same character appears in the path. Check this
+rem by replacing all occurrences of ';' with '' and checking that neither
+rem CATALINA_HOME nor CATALINA_BASE have changed
+if "%CATALINA_HOME%" == "%CATALINA_HOME:;=%" goto homeNoSemicolon
+echo Using CATALINA_HOME:   "%CATALINA_HOME%"
+echo Unable to start as CATALINA_HOME contains a semicolon (;) character
+goto end
+:homeNoSemicolon
+
+if "%CATALINA_BASE%" == "%CATALINA_BASE:;=%" goto baseNoSemicolon
+echo Using CATALINA_BASE:   "%CATALINA_BASE%"
+echo Unable to start as CATALINA_BASE contains a semicolon (;) character
+goto end
+:baseNoSemicolon
+
+rem Ensure that any user defined CLASSPATH variables are not used on startup,
+rem but allow them to be specified in setenv.bat, in rare case when it is needed.
+set CLASSPATH=
+
+rem Get standard environment variables
+if not exist "%CATALINA_BASE%\bin\setenv.bat" goto checkSetenvHome
+call "%CATALINA_BASE%\bin\setenv.bat"
+goto setenvDone
+:checkSetenvHome
+if exist "%CATALINA_HOME%\bin\setenv.bat" call "%CATALINA_HOME%\bin\setenv.bat"
+:setenvDone
+
+rem Get standard Java environment variables
+if exist "%CATALINA_HOME%\bin\setclasspath.bat" goto okSetclasspath
+echo Cannot find "%CATALINA_HOME%\bin\setclasspath.bat"
+echo This file is needed to run this program
+goto end
+:okSetclasspath
+call "%CATALINA_HOME%\bin\setclasspath.bat" %1
+if errorlevel 1 goto end
+
+rem Add on extra jar file to CLASSPATH
+rem Note that there are no quotes as we do not want to introduce random
+rem quotes into the CLASSPATH
+if "%CLASSPATH%" == "" goto emptyClasspath
+set "CLASSPATH=%CLASSPATH%;"
+:emptyClasspath
+set "CLASSPATH=%CLASSPATH%%CATALINA_HOME%\bin\bootstrap.jar"
+
+if not "%CATALINA_TMPDIR%" == "" goto gotTmpdir
+set "CATALINA_TMPDIR=%CATALINA_BASE%\temp"
+:gotTmpdir
+
+rem Add tomcat-juli.jar to classpath
+rem tomcat-juli.jar can be over-ridden per instance
+if not exist "%CATALINA_BASE%\bin\tomcat-juli.jar" goto juliClasspathHome
+set "CLASSPATH=%CLASSPATH%;%CATALINA_BASE%\bin\tomcat-juli.jar"
+goto juliClasspathDone
+:juliClasspathHome
+set "CLASSPATH=%CLASSPATH%;%CATALINA_HOME%\bin\tomcat-juli.jar"
+:juliClasspathDone
+
+if not "%JSSE_OPTS%" == "" goto gotJsseOpts
+set "JSSE_OPTS=-Djdk.tls.ephemeralDHKeySize=2048"
+:gotJsseOpts
+set "JAVA_OPTS=%JAVA_OPTS% %JSSE_OPTS%"
+
+rem Check for the deprecated LOGGING_CONFIG
+rem Only use it if CATALINA_LOGGING_CONFIG is not set and LOGGING_CONFIG starts with "-D..."
+if not "%LOGGING_CONFIG:~0,2%"=="-D" goto noLoggingDeprecation
+if not "%CATALINA_LOGGING_CONFIG%" == "" goto noLoggingDeprecation
+set "CATALINA_LOGGING_CONFIG=%LOGGING_CONFIG%"
+:noLoggingDeprecation
+
+if not "%CATALINA_LOGGING_CONFIG%" == "" goto noJuliConfig
+set CATALINA_LOGGING_CONFIG=-Dnop
+if not exist "%CATALINA_BASE%\conf\logging.properties" goto noJuliConfig
+set CATALINA_LOGGING_CONFIG=-Djava.util.logging.config.file="%CATALINA_BASE%\conf\logging.properties"
+:noJuliConfig
+
+if not "%LOGGING_MANAGER%" == "" goto noJuliManager
+set LOGGING_MANAGER=-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+:noJuliManager
+
+rem Configure JAVA 9 specific start-up parameters
+set "JDK_JAVA_OPTIONS=%JDK_JAVA_OPTIONS% --add-opens=java.base/java.lang=ALL-UNNAMED"
+set "JDK_JAVA_OPTIONS=%JDK_JAVA_OPTIONS% --add-opens=java.base/java.io=ALL-UNNAMED"
+set "JDK_JAVA_OPTIONS=%JDK_JAVA_OPTIONS% --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED"
+
+rem Java 9 no longer supports the java.endorsed.dirs
+rem system property. Only try to use it if
+rem JAVA_ENDORSED_DIRS was explicitly set
+rem or CATALINA_HOME/endorsed exists.
+set ENDORSED_PROP=ignore.endorsed.dirs
+if "%JAVA_ENDORSED_DIRS%" == "" goto noEndorsedVar
+set ENDORSED_PROP=java.endorsed.dirs
+goto doneEndorsed
+:noEndorsedVar
+if not exist "%CATALINA_HOME%\endorsed" goto doneEndorsed
+set ENDORSED_PROP=java.endorsed.dirs
+:doneEndorsed
+
+rem ----- Execute The Requested Command ---------------------------------------
+
+echo Using CATALINA_BASE:   "%CATALINA_BASE%"
+echo Using CATALINA_HOME:   "%CATALINA_HOME%"
+echo Using CATALINA_TMPDIR: "%CATALINA_TMPDIR%"
+if ""%1"" == ""debug"" goto use_jdk
+echo Using JRE_HOME:        "%JRE_HOME%"
+goto java_dir_displayed
+:use_jdk
+echo Using JAVA_HOME:       "%JAVA_HOME%"
+:java_dir_displayed
+echo Using CLASSPATH:       "%CLASSPATH%"
+echo Using CATALINA_OPTS:   "%CATALINA_OPTS%"
+
+set _EXECJAVA=%_RUNJAVA%
+set MAINCLASS=org.apache.catalina.startup.Bootstrap
+set ACTION=start
+set SECURITY_POLICY_FILE=
+set DEBUG_OPTS=
+set JPDA=
+
+if not ""%1"" == ""jpda"" goto noJpda
+set JPDA=jpda
+if not "%JPDA_TRANSPORT%" == "" goto gotJpdaTransport
+set JPDA_TRANSPORT=dt_socket
+:gotJpdaTransport
+if not "%JPDA_ADDRESS%" == "" goto gotJpdaAddress
+set JPDA_ADDRESS=localhost:8000
+:gotJpdaAddress
+if not "%JPDA_SUSPEND%" == "" goto gotJpdaSuspend
+set JPDA_SUSPEND=n
+:gotJpdaSuspend
+if not "%JPDA_OPTS%" == "" goto gotJpdaOpts
+set JPDA_OPTS=-agentlib:jdwp=transport=%JPDA_TRANSPORT%,address=%JPDA_ADDRESS%,server=y,suspend=%JPDA_SUSPEND%
+:gotJpdaOpts
+shift
+:noJpda
+
+if ""%1"" == ""debug"" goto doDebug
+if ""%1"" == ""run"" goto doRun
+if ""%1"" == ""start"" goto doStart
+if ""%1"" == ""stop"" goto doStop
+if ""%1"" == ""configtest"" goto doConfigTest
+if ""%1"" == ""version"" goto doVersion
+
+echo Usage:  catalina ( commands ... )
+echo commands:
+echo   debug             Start Catalina in a debugger
+echo   debug -security   Debug Catalina with a security manager
+echo   jpda start        Start Catalina under JPDA debugger
+echo   run               Start Catalina in the current window
+echo   run -security     Start in the current window with security manager
+echo   start             Start Catalina in a separate window
+echo   start -security   Start in a separate window with security manager
+echo   stop              Stop Catalina
+echo   configtest        Run a basic syntax check on server.xml
+echo   version           What version of tomcat are you running?
+goto end
+
+:doDebug
+shift
+set _EXECJAVA=%_RUNJDB%
+set DEBUG_OPTS=-sourcepath "%CATALINA_HOME%\..\..\java"
+if not ""%1"" == ""-security"" goto execCmd
+shift
+echo Using Security Manager
+set "SECURITY_POLICY_FILE=%CATALINA_BASE%\conf\catalina.policy"
+goto execCmd
+
+:doRun
+shift
+if not ""%1"" == ""-security"" goto execCmd
+shift
+echo Using Security Manager
+set "SECURITY_POLICY_FILE=%CATALINA_BASE%\conf\catalina.policy"
+goto execCmd
+
+:doStart
+shift
+if "%TITLE%" == "" set TITLE=Tomcat
+set _EXECJAVA=start "%TITLE%" %_RUNJAVA%
+if not ""%1"" == ""-security"" goto execCmd
+shift
+echo Using Security Manager
+set "SECURITY_POLICY_FILE=%CATALINA_BASE%\conf\catalina.policy"
+goto execCmd
+
+:doStop
+shift
+set ACTION=stop
+set CATALINA_OPTS=
+goto execCmd
+
+:doConfigTest
+shift
+set ACTION=configtest
+set CATALINA_OPTS=
+goto execCmd
+
+:doVersion
+%_EXECJAVA% -classpath "%CATALINA_HOME%\lib\catalina.jar" org.apache.catalina.util.ServerInfo
+goto end
+
+
+:execCmd
+rem Get remaining unshifted command line arguments and save them in the
+set CMD_LINE_ARGS=
+:setArgs
+if ""%1""=="""" goto doneSetArgs
+set CMD_LINE_ARGS=%CMD_LINE_ARGS% %1
+shift
+goto setArgs
+:doneSetArgs
+
+rem Execute Java with the applicable properties
+if not "%JPDA%" == "" goto doJpda
+if not "%SECURITY_POLICY_FILE%" == "" goto doSecurity
+%_EXECJAVA% %CATALINA_LOGGING_CONFIG% %LOGGING_MANAGER% %JAVA_OPTS% %CATALINA_OPTS% %DEBUG_OPTS% -D%ENDORSED_PROP%="%JAVA_ENDORSED_DIRS%" -classpath "%CLASSPATH%" -Dcatalina.base="%CATALINA_BASE%" -Dcatalina.home="%CATALINA_HOME%" -Djava.io.tmpdir="%CATALINA_TMPDIR%" %MAINCLASS% %CMD_LINE_ARGS% %ACTION%
+goto end
+:doSecurity
+%_EXECJAVA% %CATALINA_LOGGING_CONFIG% %LOGGING_MANAGER% %JAVA_OPTS% %CATALINA_OPTS% %DEBUG_OPTS% -D%ENDORSED_PROP%="%JAVA_ENDORSED_DIRS%" -classpath "%CLASSPATH%" -Djava.security.manager -Djava.security.policy=="%SECURITY_POLICY_FILE%" -Dcatalina.base="%CATALINA_BASE%" -Dcatalina.home="%CATALINA_HOME%" -Djava.io.tmpdir="%CATALINA_TMPDIR%" %MAINCLASS% %CMD_LINE_ARGS% %ACTION%
+goto end
+:doJpda
+if not "%SECURITY_POLICY_FILE%" == "" goto doSecurityJpda
+%_EXECJAVA% %CATALINA_LOGGING_CONFIG% %LOGGING_MANAGER% %JAVA_OPTS% %JPDA_OPTS% %CATALINA_OPTS% %DEBUG_OPTS% -D%ENDORSED_PROP%="%JAVA_ENDORSED_DIRS%" -classpath "%CLASSPATH%" -Dcatalina.base="%CATALINA_BASE%" -Dcatalina.home="%CATALINA_HOME%" -Djava.io.tmpdir="%CATALINA_TMPDIR%" %MAINCLASS% %CMD_LINE_ARGS% %ACTION%
+goto end
+:doSecurityJpda
+%_EXECJAVA% %CATALINA_LOGGING_CONFIG% %LOGGING_MANAGER% %JAVA_OPTS% %JPDA_OPTS% %CATALINA_OPTS% %DEBUG_OPTS% -D%ENDORSED_PROP%="%JAVA_ENDORSED_DIRS%" -classpath "%CLASSPATH%" -Djava.security.manager -Djava.security.policy=="%SECURITY_POLICY_FILE%" -Dcatalina.base="%CATALINA_BASE%" -Dcatalina.home="%CATALINA_HOME%" -Djava.io.tmpdir="%CATALINA_TMPDIR%" %MAINCLASS% %CMD_LINE_ARGS% %ACTION%
+goto end
+
+:end
+
+#!/bin/sh
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# -----------------------------------------------------------------------------
+# Control Script for the CATALINA Server
+#
+# For supported commands call "catalina.sh help" or see the usage section at
+# the end of this file.
+#
+# Environment Variable Prerequisites
+#
+#   Do not set the variables in this script. Instead put them into a script
+#   setenv.sh in CATALINA_BASE/bin to keep your customizations separate.
+#
+#   CATALINA_HOME   May point at your Catalina "build" directory.
+#
+#   CATALINA_BASE   (Optional) Base directory for resolving dynamic portions
+#                   of a Catalina installation.  If not present, resolves to
+#                   the same directory that CATALINA_HOME points to.
+#
+#   CATALINA_OUT    (Optional) Full path to a file where stdout and stderr
+#                   will be redirected.
+#                   Default is $CATALINA_BASE/logs/catalina.out
+#
+#   CATALINA_OUT_CMD (Optional) Command which will be executed and receive
+#                   as its stdin the stdout and stderr from the Tomcat java
+#                   process. If CATALINA_OUT_CMD is set, the value of
+#                   CATALINA_OUT will be used as a named pipe.
+#                   No default.
+#                   Example (all one line)
+#                   CATALINA_OUT_CMD="/usr/bin/rotatelogs -f $CATALINA_BASE/logs/catalina.out.%Y-%m-%d.log 86400"
+#
+#   CATALINA_OPTS   (Optional) Java runtime options used when the "start",
+#                   "run" or "debug" command is executed.
+#                   Include here and not in JAVA_OPTS all options, that should
+#                   only be used by Tomcat itself, not by the stop process,
+#                   the version command etc.
+#                   Examples are heap size, GC logging, JMX ports etc.
+#
+#   CATALINA_TMPDIR (Optional) Directory path location of temporary directory
+#                   the JVM should use (java.io.tmpdir).  Defaults to
+#                   $CATALINA_BASE/temp.
+#
+#   JAVA_HOME       Must point at your Java Development Kit installation.
+#                   Required to run the with the "debug" argument.
+#
+#   JRE_HOME        Must point at your Java Runtime installation.
+#                   Defaults to JAVA_HOME if empty. If JRE_HOME and JAVA_HOME
+#                   are both set, JRE_HOME is used.
+#
+#   JAVA_OPTS       (Optional) Java runtime options used when any command
+#                   is executed.
+#                   Include here and not in CATALINA_OPTS all options, that
+#                   should be used by Tomcat and also by the stop process,
+#                   the version command etc.
+#                   Most options should go into CATALINA_OPTS.
+#
+#   JAVA_ENDORSED_DIRS (Optional) Lists of of colon separated directories
+#                   containing some jars in order to allow replacement of APIs
+#                   created outside of the JCP (i.e. DOM and SAX from W3C).
+#                   It can also be used to update the XML parser implementation.
+#                   This is only supported for Java <= 8.
+#                   Defaults to $CATALINA_HOME/endorsed.
+#
+#   JPDA_TRANSPORT  (Optional) JPDA transport used when the "jpda start"
+#                   command is executed. The default is "dt_socket".
+#
+#   JPDA_ADDRESS    (Optional) Java runtime options used when the "jpda start"
+#                   command is executed. The default is localhost:8000.
+#
+#   JPDA_SUSPEND    (Optional) Java runtime options used when the "jpda start"
+#                   command is executed. Specifies whether JVM should suspend
+#                   execution immediately after startup. Default is "n".
+#
+#   JPDA_OPTS       (Optional) Java runtime options used when the "jpda start"
+#                   command is executed. If used, JPDA_TRANSPORT, JPDA_ADDRESS,
+#                   and JPDA_SUSPEND are ignored. Thus, all required jpda
+#                   options MUST be specified. The default is:
+#
+#                   -agentlib:jdwp=transport=$JPDA_TRANSPORT,
+#                       address=$JPDA_ADDRESS,server=y,suspend=$JPDA_SUSPEND
+#
+#   JSSE_OPTS       (Optional) Java runtime options used to control the TLS
+#                   implementation when JSSE is used. Default is:
+#                   "-Djdk.tls.ephemeralDHKeySize=2048"
+#
+#   CATALINA_PID    (Optional) Path of the file which should contains the pid
+#                   of the catalina startup java process, when start (fork) is
+#                   used
+#
+#   CATALINA_LOGGING_CONFIG (Optional) Override Tomcat's logging config file
+#                   Example (all one line)
+#                   CATALINA_LOGGING_CONFIG="-Djava.util.logging.config.file=$CATALINA_BASE/conf/logging.properties"
+#
+#   LOGGING_CONFIG  Deprecated
+#                   Use CATALINA_LOGGING_CONFIG
+#                   This is only used if CATALINA_LOGGING_CONFIG is not set
+#                   and LOGGING_CONFIG starts with "-D..."
+#
+#   LOGGING_MANAGER (Optional) Override Tomcat's logging manager
+#                   Example (all one line)
+#                   LOGGING_MANAGER="-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager"
+#
+#   UMASK           (Optional) Override Tomcat's default UMASK of 0027
+#
+#   USE_NOHUP       (Optional) If set to the string true the start command will
+#                   use nohup so that the Tomcat process will ignore any hangup
+#                   signals. Default is "false" unless running on HP-UX in which
+#                   case the default is "true"
+# -----------------------------------------------------------------------------
+
+# OS specific support.  $var _must_ be set to either true or false.
+cygwin=false
+darwin=false
+os400=false
+hpux=false
+case "`uname`" in
+CYGWIN*) cygwin=true;;
+Darwin*) darwin=true;;
+OS400*) os400=true;;
+HP-UX*) hpux=true;;
+esac
+
+# resolve links - $0 may be a softlink
+PRG="$0"
+
+while [ -h "$PRG" ]; do
+  ls=`ls -ld "$PRG"`
+  link=`expr "$ls" : '.*-> \(.*\)$'`
+  if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+  else
+    PRG=`dirname "$PRG"`/"$link"
+  fi
+done
+
+# Get standard environment variables
+PRGDIR=`dirname "$PRG"`
+
+# Only set CATALINA_HOME if not already set
+[ -z "$CATALINA_HOME" ] && CATALINA_HOME=`cd "$PRGDIR/.." >/dev/null; pwd`
+
+# Copy CATALINA_BASE from CATALINA_HOME if not already set
+[ -z "$CATALINA_BASE" ] && CATALINA_BASE="$CATALINA_HOME"
+
+# Ensure that any user defined CLASSPATH variables are not used on startup,
+# but allow them to be specified in setenv.sh, in rare case when it is needed.
+CLASSPATH=
+
+if [ -r "$CATALINA_BASE/bin/setenv.sh" ]; then
+  . "$CATALINA_BASE/bin/setenv.sh"
+elif [ -r "$CATALINA_HOME/bin/setenv.sh" ]; then
+  . "$CATALINA_HOME/bin/setenv.sh"
+fi
+
+# For Cygwin, ensure paths are in UNIX format before anything is touched
+if $cygwin; then
+  [ -n "$JAVA_HOME" ] && JAVA_HOME=`cygpath --unix "$JAVA_HOME"`
+  [ -n "$JRE_HOME" ] && JRE_HOME=`cygpath --unix "$JRE_HOME"`
+  [ -n "$CATALINA_HOME" ] && CATALINA_HOME=`cygpath --unix "$CATALINA_HOME"`
+  [ -n "$CATALINA_BASE" ] && CATALINA_BASE=`cygpath --unix "$CATALINA_BASE"`
+  [ -n "$CLASSPATH" ] && CLASSPATH=`cygpath --path --unix "$CLASSPATH"`
+fi
+
+# Ensure that neither CATALINA_HOME nor CATALINA_BASE contains a colon
+# as this is used as the separator in the classpath and Java provides no
+# mechanism for escaping if the same character appears in the path.
+case $CATALINA_HOME in
+  *:*) echo "Using CATALINA_HOME:   $CATALINA_HOME";
+       echo "Unable to start as CATALINA_HOME contains a colon (:) character";
+       exit 1;
+esac
+case $CATALINA_BASE in
+  *:*) echo "Using CATALINA_BASE:   $CATALINA_BASE";
+       echo "Unable to start as CATALINA_BASE contains a colon (:) character";
+       exit 1;
+esac
+
+# For OS400
+if $os400; then
+  # Set job priority to standard for interactive (interactive - 6) by using
+  # the interactive priority - 6, the helper threads that respond to requests
+  # will be running at the same priority as interactive jobs.
+  COMMAND='chgjob job('$JOBNAME') runpty(6)'
+  system $COMMAND
+
+  # Enable multi threading
+  export QIBM_MULTI_THREADED=Y
+fi
+
+# Get standard Java environment variables
+if $os400; then
+  # -r will Only work on the os400 if the files are:
+  # 1. owned by the user
+  # 2. owned by the PRIMARY group of the user
+  # this will not work if the user belongs in secondary groups
+  . "$CATALINA_HOME"/bin/setclasspath.sh
+else
+  if [ -r "$CATALINA_HOME"/bin/setclasspath.sh ]; then
+    . "$CATALINA_HOME"/bin/setclasspath.sh
+  else
+    echo "Cannot find $CATALINA_HOME/bin/setclasspath.sh"
+    echo "This file is needed to run this program"
+    exit 1
+  fi
+fi
+
+# Add on extra jar files to CLASSPATH
+if [ ! -z "$CLASSPATH" ] ; then
+  CLASSPATH="$CLASSPATH":
+fi
+CLASSPATH="$CLASSPATH""$CATALINA_HOME"/bin/bootstrap.jar
+
+if [ -z "$CATALINA_OUT" ] ; then
+  CATALINA_OUT="$CATALINA_BASE"/logs/catalina.out
+fi
+
+if [ -z "$CATALINA_TMPDIR" ] ; then
+  # Define the java.io.tmpdir to use for Catalina
+  CATALINA_TMPDIR="$CATALINA_BASE"/temp
+fi
+
+# Add tomcat-juli.jar to classpath
+# tomcat-juli.jar can be over-ridden per instance
+if [ -r "$CATALINA_BASE/bin/tomcat-juli.jar" ] ; then
+  CLASSPATH=$CLASSPATH:$CATALINA_BASE/bin/tomcat-juli.jar
+else
+  CLASSPATH=$CLASSPATH:$CATALINA_HOME/bin/tomcat-juli.jar
+fi
+
+# Bugzilla 37848: When no TTY is available, don't output to console
+have_tty=0
+if [ -t 0 ]; then
+    have_tty=1
+fi
+
+# For Cygwin, switch paths to Windows format before running java
+if $cygwin; then
+  JAVA_HOME=`cygpath --absolute --windows "$JAVA_HOME"`
+  JRE_HOME=`cygpath --absolute --windows "$JRE_HOME"`
+  CATALINA_HOME=`cygpath --absolute --windows "$CATALINA_HOME"`
+  CATALINA_BASE=`cygpath --absolute --windows "$CATALINA_BASE"`
+  CATALINA_TMPDIR=`cygpath --absolute --windows "$CATALINA_TMPDIR"`
+  CLASSPATH=`cygpath --path --windows "$CLASSPATH"`
+  [ -n "$JAVA_ENDORSED_DIRS" ] && JAVA_ENDORSED_DIRS=`cygpath --path --windows "$JAVA_ENDORSED_DIRS"`
+fi
+
+if [ -z "$JSSE_OPTS" ] ; then
+  JSSE_OPTS="-Djdk.tls.ephemeralDHKeySize=2048"
+fi
+JAVA_OPTS="$JAVA_OPTS $JSSE_OPTS"
+
+# Check for the deprecated LOGGING_CONFIG
+# Only use it if CATALINA_LOGGING_CONFIG is not set and LOGGING_CONFIG starts with "-D..."
+if [ -z "$CATALINA_LOGGING_CONFIG" ]; then
+  case $LOGGING_CONFIG in
+    -D*) CATALINA_LOGGING_CONFIG="$LOGGING_CONFIG"
+  esac
+fi
+
+# Set juli LogManager config file if it is present and an override has not been issued
+if [ -z "$CATALINA_LOGGING_CONFIG" ]; then
+  if [ -r "$CATALINA_BASE"/conf/logging.properties ]; then
+    CATALINA_LOGGING_CONFIG="-Djava.util.logging.config.file=$CATALINA_BASE/conf/logging.properties"
+  else
+    # Bugzilla 45585
+    CATALINA_LOGGING_CONFIG="-Dnop"
+  fi
+fi
+
+if [ -z "$LOGGING_MANAGER" ]; then
+  LOGGING_MANAGER="-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager"
+fi
+
+# Set UMASK unless it has been overridden
+if [ -z "$UMASK" ]; then
+    UMASK="0027"
+fi
+umask $UMASK
+
+# Java 9 no longer supports the java.endorsed.dirs
+# system property. Only try to use it if
+# JAVA_ENDORSED_DIRS was explicitly set
+# or CATALINA_HOME/endorsed exists.
+ENDORSED_PROP=ignore.endorsed.dirs
+if [ -n "$JAVA_ENDORSED_DIRS" ]; then
+    ENDORSED_PROP=java.endorsed.dirs
+fi
+if [ -d "$CATALINA_HOME/endorsed" ]; then
+    ENDORSED_PROP=java.endorsed.dirs
+fi
+
+# Make the umask available when using the org.apache.catalina.security.SecurityListener
+JAVA_OPTS="$JAVA_OPTS -Dorg.apache.catalina.security.SecurityListener.UMASK=`umask`"
+
+if [ -z "$USE_NOHUP" ]; then
+    if $hpux; then
+        USE_NOHUP="true"
+    else
+        USE_NOHUP="false"
+    fi
+fi
+unset _NOHUP
+if [ "$USE_NOHUP" = "true" ]; then
+    _NOHUP="nohup"
+fi
+
+# Add the JAVA 9 specific start-up parameters required by Tomcat
+JDK_JAVA_OPTIONS="$JDK_JAVA_OPTIONS --add-opens=java.base/java.lang=ALL-UNNAMED"
+JDK_JAVA_OPTIONS="$JDK_JAVA_OPTIONS --add-opens=java.base/java.io=ALL-UNNAMED"
+JDK_JAVA_OPTIONS="$JDK_JAVA_OPTIONS --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED"
+export JDK_JAVA_OPTIONS
+
+# ----- Execute The Requested Command -----------------------------------------
+
+# Bugzilla 37848: only output this if we have a TTY
+if [ $have_tty -eq 1 ]; then
+  echo "Using CATALINA_BASE:   $CATALINA_BASE"
+  echo "Using CATALINA_HOME:   $CATALINA_HOME"
+  echo "Using CATALINA_TMPDIR: $CATALINA_TMPDIR"
+  if [ "$1" = "debug" ] ; then
+    echo "Using JAVA_HOME:       $JAVA_HOME"
+  else
+    echo "Using JRE_HOME:        $JRE_HOME"
+  fi
+  echo "Using CLASSPATH:       $CLASSPATH"
+  echo "Using CATALINA_OPTS:   $CATALINA_OPTS"
+  if [ ! -z "$CATALINA_PID" ]; then
+    echo "Using CATALINA_PID:    $CATALINA_PID"
+  fi
+fi
+
+if [ "$1" = "jpda" ] ; then
+  if [ -z "$JPDA_TRANSPORT" ]; then
+    JPDA_TRANSPORT="dt_socket"
+  fi
+  if [ -z "$JPDA_ADDRESS" ]; then
+    JPDA_ADDRESS="localhost:8000"
+  fi
+  if [ -z "$JPDA_SUSPEND" ]; then
+    JPDA_SUSPEND="n"
+  fi
+  if [ -z "$JPDA_OPTS" ]; then
+    JPDA_OPTS="-agentlib:jdwp=transport=$JPDA_TRANSPORT,address=$JPDA_ADDRESS,server=y,suspend=$JPDA_SUSPEND"
+  fi
+  CATALINA_OPTS="$JPDA_OPTS $CATALINA_OPTS"
+  shift
+fi
+
+if [ "$1" = "debug" ] ; then
+  if $os400; then
+    echo "Debug command not available on OS400"
+    exit 1
+  else
+    shift
+    if [ "$1" = "-security" ] ; then
+      if [ $have_tty -eq 1 ]; then
+        echo "Using Security Manager"
+      fi
+      shift
+      eval exec "\"$_RUNJDB\"" "\"$CATALINA_LOGGING_CONFIG\"" $LOGGING_MANAGER "$JAVA_OPTS" "$CATALINA_OPTS" \
+        -D$ENDORSED_PROP="$JAVA_ENDORSED_DIRS" \
+        -classpath "$CLASSPATH" \
+        -sourcepath "$CATALINA_HOME"/../../java \
+        -Djava.security.manager \
+        -Djava.security.policy=="$CATALINA_BASE"/conf/catalina.policy \
+        -Dcatalina.base="$CATALINA_BASE" \
+        -Dcatalina.home="$CATALINA_HOME" \
+        -Djava.io.tmpdir="$CATALINA_TMPDIR" \
+        org.apache.catalina.startup.Bootstrap "$@" start
+    else
+      eval exec "\"$_RUNJDB\"" "\"$CATALINA_LOGGING_CONFIG\"" $LOGGING_MANAGER "$JAVA_OPTS" "$CATALINA_OPTS" \
+        -D$ENDORSED_PROP="$JAVA_ENDORSED_DIRS" \
+        -classpath "$CLASSPATH" \
+        -sourcepath "$CATALINA_HOME"/../../java \
+        -Dcatalina.base="$CATALINA_BASE" \
+        -Dcatalina.home="$CATALINA_HOME" \
+        -Djava.io.tmpdir="$CATALINA_TMPDIR" \
+        org.apache.catalina.startup.Bootstrap "$@" start
+    fi
+  fi
+
+elif [ "$1" = "run" ]; then
+
+  shift
+  if [ "$1" = "-security" ] ; then
+    if [ $have_tty -eq 1 ]; then
+      echo "Using Security Manager"
+    fi
+    shift
+    eval exec "\"$_RUNJAVA\"" "\"$CATALINA_LOGGING_CONFIG\"" $LOGGING_MANAGER "$JAVA_OPTS" "$CATALINA_OPTS" \
+      -D$ENDORSED_PROP="\"$JAVA_ENDORSED_DIRS\"" \
+      -classpath "\"$CLASSPATH\"" \
+      -Djava.security.manager \
+      -Djava.security.policy=="\"$CATALINA_BASE/conf/catalina.policy\"" \
+      -Dcatalina.base="\"$CATALINA_BASE\"" \
+      -Dcatalina.home="\"$CATALINA_HOME\"" \
+      -Djava.io.tmpdir="\"$CATALINA_TMPDIR\"" \
+      org.apache.catalina.startup.Bootstrap "$@" start
+  else
+    eval exec "\"$_RUNJAVA\"" "\"$CATALINA_LOGGING_CONFIG\"" $LOGGING_MANAGER "$JAVA_OPTS" "$CATALINA_OPTS" \
+      -D$ENDORSED_PROP="\"$JAVA_ENDORSED_DIRS\"" \
+      -classpath "\"$CLASSPATH\"" \
+      -Dcatalina.base="\"$CATALINA_BASE\"" \
+      -Dcatalina.home="\"$CATALINA_HOME\"" \
+      -Djava.io.tmpdir="\"$CATALINA_TMPDIR\"" \
+      org.apache.catalina.startup.Bootstrap "$@" start
+  fi
+
+elif [ "$1" = "start" ] ; then
+
+  if [ ! -z "$CATALINA_PID" ]; then
+    if [ -f "$CATALINA_PID" ]; then
+      if [ -s "$CATALINA_PID" ]; then
+        echo "Existing PID file found during start."
+        if [ -r "$CATALINA_PID" ]; then
+          PID=`cat "$CATALINA_PID"`
+          ps -p $PID >/dev/null 2>&1
+          if [ $? -eq 0 ] ; then
+            echo "Tomcat appears to still be running with PID $PID. Start aborted."
+            echo "If the following process is not a Tomcat process, remove the PID file and try again:"
+            ps -f -p $PID
+            exit 1
+          else
+            echo "Removing/clearing stale PID file."
+            rm -f "$CATALINA_PID" >/dev/null 2>&1
+            if [ $? != 0 ]; then
+              if [ -w "$CATALINA_PID" ]; then
+                cat /dev/null > "$CATALINA_PID"
+              else
+                echo "Unable to remove or clear stale PID file. Start aborted."
+                exit 1
+              fi
+            fi
+          fi
+        else
+          echo "Unable to read PID file. Start aborted."
+          exit 1
+        fi
+      else
+        rm -f "$CATALINA_PID" >/dev/null 2>&1
+        if [ $? != 0 ]; then
+          if [ ! -w "$CATALINA_PID" ]; then
+            echo "Unable to remove or write to empty PID file. Start aborted."
+            exit 1
+          fi
+        fi
+      fi
+    fi
+  fi
+
+  shift
+  if [ -z "$CATALINA_OUT_CMD" ] ; then
+    touch "$CATALINA_OUT"
+  else
+    if [ ! -e "$CATALINA_OUT" ]; then
+      if ! mkfifo "$CATALINA_OUT"; then
+        echo "cannot create named pipe $CATALINA_OUT. Start aborted."
+        exit 1
+      fi
+    elif [ ! -p "$CATALINA_OUT" ]; then
+      echo "$CATALINA_OUT exists and is not a named pipe. Start aborted."
+      exit 1
+    fi
+    $CATALINA_OUT_CMD <"$CATALINA_OUT" &
+  fi
+  if [ "$1" = "-security" ] ; then
+    if [ $have_tty -eq 1 ]; then
+      echo "Using Security Manager"
+    fi
+    shift
+    eval $_NOHUP "\"$_RUNJAVA\"" "\"$CATALINA_LOGGING_CONFIG\"" $LOGGING_MANAGER "$JAVA_OPTS" "$CATALINA_OPTS" \
+      -D$ENDORSED_PROP="\"$JAVA_ENDORSED_DIRS\"" \
+      -classpath "\"$CLASSPATH\"" \
+      -Djava.security.manager \
+      -Djava.security.policy=="\"$CATALINA_BASE/conf/catalina.policy\"" \
+      -Dcatalina.base="\"$CATALINA_BASE\"" \
+      -Dcatalina.home="\"$CATALINA_HOME\"" \
+      -Djava.io.tmpdir="\"$CATALINA_TMPDIR\"" \
+      org.apache.catalina.startup.Bootstrap "$@" start \
+      >> "$CATALINA_OUT" 2>&1 "&"
+
+  else
+    eval $_NOHUP "\"$_RUNJAVA\"" "\"$CATALINA_LOGGING_CONFIG\"" $LOGGING_MANAGER "$JAVA_OPTS" "$CATALINA_OPTS" \
+      -D$ENDORSED_PROP="\"$JAVA_ENDORSED_DIRS\"" \
+      -classpath "\"$CLASSPATH\"" \
+      -Dcatalina.base="\"$CATALINA_BASE\"" \
+      -Dcatalina.home="\"$CATALINA_HOME\"" \
+      -Djava.io.tmpdir="\"$CATALINA_TMPDIR\"" \
+      org.apache.catalina.startup.Bootstrap "$@" start \
+      >> "$CATALINA_OUT" 2>&1 "&"
+
+  fi
+
+  if [ ! -z "$CATALINA_PID" ]; then
+    echo $! > "$CATALINA_PID"
+  fi
+
+  echo "Tomcat started."
+
+elif [ "$1" = "stop" ] ; then
+
+  shift
+
+  SLEEP=5
+  if [ ! -z "$1" ]; then
+    echo $1 | grep "[^0-9]" >/dev/null 2>&1
+    if [ $? -gt 0 ]; then
+      SLEEP=$1
+      shift
+    fi
+  fi
+
+  FORCE=0
+  if [ "$1" = "-force" ]; then
+    shift
+    FORCE=1
+  fi
+
+  if [ ! -z "$CATALINA_PID" ]; then
+    if [ -f "$CATALINA_PID" ]; then
+      if [ -s "$CATALINA_PID" ]; then
+        kill -0 `cat "$CATALINA_PID"` >/dev/null 2>&1
+        if [ $? -gt 0 ]; then
+          echo "PID file found but either no matching process was found or the current user does not have permission to stop the process. Stop aborted."
+          exit 1
+        fi
+      else
+        echo "PID file is empty and has been ignored."
+      fi
+    else
+      echo "\$CATALINA_PID was set but the specified file does not exist. Is Tomcat running? Stop aborted."
+      exit 1
+    fi
+  fi
+
+  eval "\"$_RUNJAVA\"" $LOGGING_MANAGER "$JAVA_OPTS" \
+    -D$ENDORSED_PROP="\"$JAVA_ENDORSED_DIRS\"" \
+    -classpath "\"$CLASSPATH\"" \
+    -Dcatalina.base="\"$CATALINA_BASE\"" \
+    -Dcatalina.home="\"$CATALINA_HOME\"" \
+    -Djava.io.tmpdir="\"$CATALINA_TMPDIR\"" \
+    org.apache.catalina.startup.Bootstrap "$@" stop
+
+  # stop failed. Shutdown port disabled? Try a normal kill.
+  if [ $? != 0 ]; then
+    if [ ! -z "$CATALINA_PID" ]; then
+      echo "The stop command failed. Attempting to signal the process to stop through OS signal."
+      kill -15 `cat "$CATALINA_PID"` >/dev/null 2>&1
+    fi
+  fi
+
+  if [ ! -z "$CATALINA_PID" ]; then
+    if [ -f "$CATALINA_PID" ]; then
+      while [ $SLEEP -ge 0 ]; do
+        kill -0 `cat "$CATALINA_PID"` >/dev/null 2>&1
+        if [ $? -gt 0 ]; then
+          rm -f "$CATALINA_PID" >/dev/null 2>&1
+          if [ $? != 0 ]; then
+            if [ -w "$CATALINA_PID" ]; then
+              cat /dev/null > "$CATALINA_PID"
+              # If Tomcat has stopped don't try and force a stop with an empty PID file
+              FORCE=0
+            else
+              echo "The PID file could not be removed or cleared."
+            fi
+          fi
+          echo "Tomcat stopped."
+          break
+        fi
+        if [ $SLEEP -gt 0 ]; then
+          sleep 1
+        fi
+        if [ $SLEEP -eq 0 ]; then
+          echo "Tomcat did not stop in time."
+          if [ $FORCE -eq 0 ]; then
+            echo "PID file was not removed."
+          fi
+          echo "To aid diagnostics a thread dump has been written to standard out."
+          kill -3 `cat "$CATALINA_PID"`
+        fi
+        SLEEP=`expr $SLEEP - 1 `
+      done
+    fi
+  fi
+
+  KILL_SLEEP_INTERVAL=5
+  if [ $FORCE -eq 1 ]; then
+    if [ -z "$CATALINA_PID" ]; then
+      echo "Kill failed: \$CATALINA_PID not set"
+    else
+      if [ -f "$CATALINA_PID" ]; then
+        PID=`cat "$CATALINA_PID"`
+        echo "Killing Tomcat with the PID: $PID"
+        kill -9 $PID
+        while [ $KILL_SLEEP_INTERVAL -ge 0 ]; do
+            kill -0 `cat "$CATALINA_PID"` >/dev/null 2>&1
+            if [ $? -gt 0 ]; then
+                rm -f "$CATALINA_PID" >/dev/null 2>&1
+                if [ $? != 0 ]; then
+                    if [ -w "$CATALINA_PID" ]; then
+                        cat /dev/null > "$CATALINA_PID"
+                    else
+                        echo "The PID file could not be removed."
+                    fi
+                fi
+                echo "The Tomcat process has been killed."
+                break
+            fi
+            if [ $KILL_SLEEP_INTERVAL -gt 0 ]; then
+                sleep 1
+            fi
+            KILL_SLEEP_INTERVAL=`expr $KILL_SLEEP_INTERVAL - 1 `
+        done
+        if [ $KILL_SLEEP_INTERVAL -lt 0 ]; then
+            echo "Tomcat has not been killed completely yet. The process might be waiting on some system call or might be UNINTERRUPTIBLE."
+        fi
+      fi
+    fi
+  fi
+
+elif [ "$1" = "configtest" ] ; then
+
+    eval "\"$_RUNJAVA\"" $LOGGING_MANAGER "$JAVA_OPTS" \
+      -D$ENDORSED_PROP="\"$JAVA_ENDORSED_DIRS\"" \
+      -classpath "\"$CLASSPATH\"" \
+      -Dcatalina.base="\"$CATALINA_BASE\"" \
+      -Dcatalina.home="\"$CATALINA_HOME\"" \
+      -Djava.io.tmpdir="\"$CATALINA_TMPDIR\"" \
+      org.apache.catalina.startup.Bootstrap configtest
+    result=$?
+    if [ $result -ne 0 ]; then
+        echo "Configuration error detected!"
+    fi
+    exit $result
+
+elif [ "$1" = "version" ] ; then
+
+    "$_RUNJAVA"   \
+      -classpath "$CATALINA_HOME/lib/catalina.jar" \
+      org.apache.catalina.util.ServerInfo
+
+else
+
+  echo "Usage: catalina.sh ( commands ... )"
+  echo "commands:"
+  if $os400; then
+    echo "  debug             Start Catalina in a debugger (not available on OS400)"
+    echo "  debug -security   Debug Catalina with a security manager (not available on OS400)"
+  else
+    echo "  debug             Start Catalina in a debugger"
+    echo "  debug -security   Debug Catalina with a security manager"
+  fi
+  echo "  jpda start        Start Catalina under JPDA debugger"
+  echo "  run               Start Catalina in the current window"
+  echo "  run -security     Start in the current window with security manager"
+  echo "  start             Start Catalina in a separate window"
+  echo "  start -security   Start in a separate window with security manager"
+  echo "  stop              Stop Catalina, waiting up to 5 seconds for the process to end"
+  echo "  stop n            Stop Catalina, waiting up to n seconds for the process to end"
+  echo "  stop -force       Stop Catalina, wait up to 5 seconds and then use kill -KILL if still running"
+  echo "  stop n -force     Stop Catalina, wait up to n seconds and then use kill -KILL if still running"
+  echo "  configtest        Run a basic syntax check on server.xml - check exit code for result"
+  echo "  version           What version of tomcat are you running?"
+  echo "Note: Waiting for the process to end and use of the -force option require that \$CATALINA_PID is defined"
+  exit 1
+
+fi
+
+
+
+@echo off
+rem Licensed to the Apache Software Foundation (ASF) under one or more
+rem contributor license agreements.  See the NOTICE file distributed with
+rem this work for additional information regarding copyright ownership.
+rem The ASF licenses this file to You under the Apache License, Version 2.0
+rem (the "License"); you may not use this file except in compliance with
+rem the License.  You may obtain a copy of the License at
+rem
+rem     http://www.apache.org/licenses/LICENSE-2.0
+rem
+rem Unless required by applicable law or agreed to in writing, software
+rem distributed under the License is distributed on an "AS IS" BASIS,
+rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+rem See the License for the specific language governing permissions and
+rem limitations under the License.
+
+rem ---------------------------------------------------------------------------
+rem Configuration test script for the CATALINA Server
+rem ---------------------------------------------------------------------------
+
+setlocal
+
+rem Guess CATALINA_HOME if not defined
+set "CURRENT_DIR=%cd%"
+if not "%CATALINA_HOME%" == "" goto gotHome
+set "CATALINA_HOME=%CURRENT_DIR%"
+if exist "%CATALINA_HOME%\bin\catalina.bat" goto okHome
+cd ..
+set "CATALINA_HOME=%cd%"
+cd "%CURRENT_DIR%"
+:gotHome
+if exist "%CATALINA_HOME%\bin\catalina.bat" goto okHome
+echo The CATALINA_HOME environment variable is not defined correctly
+echo This environment variable is needed to run this program
+goto end
+:okHome
+
+set "EXECUTABLE=%CATALINA_HOME%\bin\catalina.bat"
+
+rem Check that target executable exists
+if exist "%EXECUTABLE%" goto okExec
+echo Cannot find "%EXECUTABLE%"
+echo This file is needed to run this program
+goto end
+:okExec
+
+rem Get remaining unshifted command line arguments and save them in the
+set CMD_LINE_ARGS=
+:setArgs
+if ""%1""=="""" goto doneSetArgs
+set CMD_LINE_ARGS=%CMD_LINE_ARGS% %1
+shift
+goto setArgs
+:doneSetArgs
+
+call "%EXECUTABLE%" configtest %CMD_LINE_ARGS%
+
+:end
+
+#!/bin/sh
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# -----------------------------------------------------------------------------
+# Configuration Test Script for the CATALINA Server
+# -----------------------------------------------------------------------------
+
+# Better OS/400 detection: see Bugzilla 31132
+os400=false
+case "`uname`" in
+OS400*) os400=true;;
+esac
+
+# resolve links - $0 may be a softlink
+PRG="$0"
+
+while [ -h "$PRG" ] ; do
+  ls=`ls -ld "$PRG"`
+  link=`expr "$ls" : '.*-> \(.*\)$'`
+  if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+  else
+    PRG=`dirname "$PRG"`/"$link"
+  fi
+done
+
+PRGDIR=`dirname "$PRG"`
+EXECUTABLE=catalina.sh
+
+# Check that target executable exists
+if $os400; then
+  # -x will Only work on the os400 if the files are:
+  # 1. owned by the user
+  # 2. owned by the PRIMARY group of the user
+  # this will not work if the user belongs in secondary groups
+  eval
+else
+  if [ ! -x "$PRGDIR"/"$EXECUTABLE" ]; then
+    echo "Cannot find $PRGDIR/$EXECUTABLE"
+    echo "The file is absent or does not have execute permission"
+    echo "This file is needed to run this program"
+    exit 1
+  fi
+fi
+
+exec "$PRGDIR"/"$EXECUTABLE" configtest "$@"
+
+#!/bin/sh
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# -----------------------------------------------------------------------------
+# Commons Daemon wrapper script.
+# -----------------------------------------------------------------------------
+
+# resolve links - $0 may be a softlink
+PRG="$0"
+
+while [ -h "$PRG" ]; do
+  ls=`ls -ld "$PRG"`
+  link=`expr "$ls" : '.*-> \(.*\)$'`
+  if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+  else
+    PRG=`dirname "$PRG"`/"$link"
+  fi
+done
+
+DIRNAME="`dirname "$PRG"`"
+PROGRAM="`basename "$PRG"`"
+while [ ".$1" != . ]
+do
+  case "$1" in
+    --java-home )
+        JAVA_HOME="$2"
+        shift; shift;
+        continue
+    ;;
+    --catalina-home )
+        CATALINA_HOME="$2"
+        shift; shift;
+        continue
+    ;;
+    --catalina-base )
+        CATALINA_BASE="$2"
+        shift; shift;
+        continue
+    ;;
+    --catalina-pid )
+        CATALINA_PID="$2"
+        shift; shift;
+        continue
+    ;;
+    --tomcat-user )
+        TOMCAT_USER="$2"
+        shift; shift;
+        continue
+    ;;
+    --service-start-wait-time )
+        SERVICE_START_WAIT_TIME="$2"
+        shift; shift;
+        continue
+    ;;
+    * )
+        break
+    ;;
+  esac
+done
+# OS specific support (must be 'true' or 'false').
+cygwin=false;
+darwin=false;
+case "`uname`" in
+    CYGWIN*)
+        cygwin=true
+        ;;
+    Darwin*)
+        darwin=true
+        ;;
+esac
+
+# Use the maximum available, or set MAX_FD != -1 to use that
+test ".$MAX_FD" = . && MAX_FD="maximum"
+# Setup parameters for running the jsvc
+#
+test ".$TOMCAT_USER" = . && TOMCAT_USER=tomcat
+# Set JAVA_HOME to working JDK or JRE
+# If not set we'll try to guess the JAVA_HOME
+# from java binary if on the PATH
+#
+if [ -z "$JAVA_HOME" ]; then
+    JAVA_BIN="`which java 2>/dev/null || type java 2>&1`"
+    while [ -h "$JAVA_BIN" ]; do
+        ls=`ls -ld "$JAVA_BIN"`
+        link=`expr "$ls" : '.*-> \(.*\)$'`
+        if expr "$link" : '/.*' > /dev/null; then
+            JAVA_BIN="$link"
+        else
+            JAVA_BIN="`dirname "$JAVA_BIN"`/$link"
+        fi
+    done
+    test -x "$JAVA_BIN" && JAVA_HOME="`dirname "$JAVA_BIN"`"
+    test ".$JAVA_HOME" != . && JAVA_HOME=`cd "$JAVA_HOME/.." >/dev/null; pwd`
+else
+    JAVA_BIN="$JAVA_HOME/bin/java"
+fi
+
+# Only set CATALINA_HOME if not already set
+test ".$CATALINA_HOME" = . && CATALINA_HOME=`cd "$DIRNAME/.." >/dev/null; pwd`
+test ".$CATALINA_BASE" = . && CATALINA_BASE="$CATALINA_HOME"
+test ".$CATALINA_MAIN" = . && CATALINA_MAIN=org.apache.catalina.startup.Bootstrap
+# If not explicitly set, look for jsvc in CATALINA_BASE first then CATALINA_HOME
+if [ -z "$JSVC" ]; then
+    JSVC="$CATALINA_BASE/bin/jsvc"
+    if [ ! -x "$JSVC" ]; then
+        JSVC="$CATALINA_HOME/bin/jsvc"
+    fi
+fi
+# Set the default service-start wait time if necessary
+test ".$SERVICE_START_WAIT_TIME" = . && SERVICE_START_WAIT_TIME=10
+
+# Ensure that any user defined CLASSPATH variables are not used on startup,
+# but allow them to be specified in setenv.sh, in rare case when it is needed.
+CLASSPATH=
+JAVA_OPTS=
+if [ -r "$CATALINA_BASE/bin/setenv.sh" ]; then
+  . "$CATALINA_BASE/bin/setenv.sh"
+elif [ -r "$CATALINA_HOME/bin/setenv.sh" ]; then
+  . "$CATALINA_HOME/bin/setenv.sh"
+fi
+
+# Add on extra jar files to CLASSPATH
+test ".$CLASSPATH" != . && CLASSPATH="$CLASSPATH:"
+CLASSPATH="$CLASSPATH$CATALINA_HOME/bin/bootstrap.jar:$CATALINA_HOME/bin/commons-daemon.jar"
+
+test ".$CATALINA_OUT" = . && CATALINA_OUT="$CATALINA_BASE/logs/catalina-daemon.out"
+test ".$CATALINA_TMP" = . && CATALINA_TMP="$CATALINA_BASE/temp"
+
+# Add tomcat-juli.jar to classpath
+# tomcat-juli.jar can be over-ridden per instance
+if [ -r "$CATALINA_BASE/bin/tomcat-juli.jar" ] ; then
+  CLASSPATH="$CLASSPATH:$CATALINA_BASE/bin/tomcat-juli.jar"
+else
+  CLASSPATH="$CLASSPATH:$CATALINA_HOME/bin/tomcat-juli.jar"
+fi
+
+# Check for the deprecated LOGGING_CONFIG
+# Only use it if CATALINA_LOGGING_CONFIG is not set and LOGGING_CONFIG starts with "-D..."
+if [ -z "$CATALINA_LOGGING_CONFIG" ]; then
+  case $LOGGING_CONFIG in
+    -D*) CATALINA_LOGGING_CONFIG="$LOGGING_CONFIG"
+  esac
+fi
+
+# Set juli LogManager config file if it is present and an override has not been issued
+if [ -z "$CATALINA_LOGGING_CONFIG" ]; then
+  if [ -r "$CATALINA_BASE/conf/logging.properties" ]; then
+    CATALINA_LOGGING_CONFIG="-Djava.util.logging.config.file=$CATALINA_BASE/conf/logging.properties"
+  else
+    # Bugzilla 45585
+    CATALINA_LOGGING_CONFIG="-Dnop"
+  fi
+fi
+
+test ".$LOGGING_MANAGER" = . && LOGGING_MANAGER="-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager"
+JAVA_OPTS="$JAVA_OPTS $LOGGING_MANAGER"
+
+# Set -pidfile
+test ".$CATALINA_PID" = . && CATALINA_PID="$CATALINA_BASE/logs/catalina-daemon.pid"
+
+# Increase the maximum file descriptors if we can
+if [ "$cygwin" = "false" ]; then
+    MAX_FD_LIMIT=`ulimit -H -n`
+    if [ "$?" -eq 0 ]; then
+        # Darwin does not allow RLIMIT_INFINITY on file soft limit
+        if [ "$darwin" = "true" ] && [ "$MAX_FD_LIMIT" = "unlimited" ]; then
+            MAX_FD_LIMIT=`/usr/sbin/sysctl -n kern.maxfilesperproc`
+        fi
+        test ".$MAX_FD" = ".maximum" && MAX_FD="$MAX_FD_LIMIT"
+        ulimit -n $MAX_FD
+        if [ "$?" -ne 0 ]; then
+            echo "$PROGRAM: Could not set maximum file descriptor limit: $MAX_FD"
+        fi
+    else
+        echo "$PROGRAM: Could not query system maximum file descriptor limit: $MAX_FD_LIMIT"
+    fi
+fi
+
+# Set UMASK unless it has been overridden
+if [ -z "$UMASK" ]; then
+    UMASK="0027"
+fi
+umask $UMASK
+
+# Java 9 no longer supports the java.endorsed.dirs
+# system property. Only try to use it if
+# JAVA_ENDORSED_DIRS was explicitly set
+# or CATALINA_HOME/endorsed exists.
+ENDORSED_PROP=ignore.endorsed.dirs
+if [ -n "$JAVA_ENDORSED_DIRS" ]; then
+    ENDORSED_PROP=java.endorsed.dirs
+fi
+if [ -d "$CATALINA_HOME/endorsed" ]; then
+    ENDORSED_PROP=java.endorsed.dirs
+fi
+
+# ----- Execute The Requested Command -----------------------------------------
+case "$1" in
+    run     )
+      shift
+      eval exec "\"$JSVC\"" $* \
+      "$JSVC_OPTS" \
+      -java-home "\"$JAVA_HOME\"" \
+      -pidfile "\"$CATALINA_PID\"" \
+      -wait $SERVICE_START_WAIT_TIME \
+      -umask $UMASK \
+      -nodetach \
+      -outfile "\"&1\"" \
+      -errfile "\"&2\"" \
+      -classpath "\"$CLASSPATH\"" \
+      "\"$CATALINA_LOGGING_CONFIG\"" "$JAVA_OPTS" "$CATALINA_OPTS" \
+      -D$ENDORSED_PROP="\"$JAVA_ENDORSED_DIRS\"" \
+      -Dcatalina.base="\"$CATALINA_BASE\"" \
+      -Dcatalina.home="\"$CATALINA_HOME\"" \
+      -Djava.io.tmpdir="\"$CATALINA_TMP\"" \
+      $CATALINA_MAIN
+      exit $?
+    ;;
+    start   )
+      eval "\"$JSVC\"" \
+      "$JSVC_OPTS" \
+      -java-home "\"$JAVA_HOME\"" \
+      -user $TOMCAT_USER \
+      -pidfile "\"$CATALINA_PID\"" \
+      -wait $SERVICE_START_WAIT_TIME \
+      -umask $UMASK \
+      -outfile "\"$CATALINA_OUT\"" \
+      -errfile "\"&1\"" \
+      -classpath "\"$CLASSPATH\"" \
+      "\"$CATALINA_LOGGING_CONFIG\"" "$JAVA_OPTS" "$CATALINA_OPTS" \
+      -D$ENDORSED_PROP="\"$JAVA_ENDORSED_DIRS\"" \
+      -Dcatalina.base="\"$CATALINA_BASE\"" \
+      -Dcatalina.home="\"$CATALINA_HOME\"" \
+      -Djava.io.tmpdir="\"$CATALINA_TMP\"" \
+      $CATALINA_MAIN
+      exit $?
+    ;;
+    stop    )
+      eval "\"$JSVC\"" \
+      "$JSVC_OPTS" \
+      -stop \
+      -pidfile "\"$CATALINA_PID\"" \
+      -classpath "\"$CLASSPATH\"" \
+      -D$ENDORSED_PROP="\"$JAVA_ENDORSED_DIRS\"" \
+      -Dcatalina.base="\"$CATALINA_BASE\"" \
+      -Dcatalina.home="\"$CATALINA_HOME\"" \
+      -Djava.io.tmpdir="\"$CATALINA_TMP\"" \
+      $CATALINA_MAIN
+      exit $?
+    ;;
+    version  )
+      "$JSVC" \
+      -java-home "$JAVA_HOME" \
+      -pidfile "$CATALINA_PID" \
+      -classpath "$CLASSPATH" \
+      -errfile "&2" \
+      -version \
+      -check \
+      $CATALINA_MAIN
+      if [ "$?" = 0 ]; then
+        "$JAVA_BIN" \
+        -classpath "$CATALINA_HOME/lib/catalina.jar" \
+        org.apache.catalina.util.ServerInfo
+      fi
+      exit $?
+    ;;
+    *       )
+      echo "Unknown command: '$1'"
+      echo "Usage: $PROGRAM ( commands ... )"
+      echo "commands:"
+      echo "  run               Start Tomcat without detaching from console"
+      echo "  start             Start Tomcat"
+      echo "  stop              Stop Tomcat"
+      echo "  version           What version of commons daemon and Tomcat"
+      echo "                    are you running?"
+      exit 1
+    ;;
+esac
+
+@echo off
+rem Licensed to the Apache Software Foundation (ASF) under one or more
+rem contributor license agreements.  See the NOTICE file distributed with
+rem this work for additional information regarding copyright ownership.
+rem The ASF licenses this file to You under the Apache License, Version 2.0
+rem (the "License"); you may not use this file except in compliance with
+rem the License.  You may obtain a copy of the License at
+rem
+rem     http://www.apache.org/licenses/LICENSE-2.0
+rem
+rem Unless required by applicable law or agreed to in writing, software
+rem distributed under the License is distributed on an "AS IS" BASIS,
+rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+rem See the License for the specific language governing permissions and
+rem limitations under the License.
+
+rem ---------------------------------------------------------------------------
+rem Script to digest password using the algorithm specified
+rem ---------------------------------------------------------------------------
+
+setlocal
+
+rem Guess CATALINA_HOME if not defined
+set "CURRENT_DIR=%cd%"
+if not "%CATALINA_HOME%" == "" goto gotHome
+set "CATALINA_HOME=%CURRENT_DIR%"
+if exist "%CATALINA_HOME%\bin\tool-wrapper.bat" goto okHome
+cd ..
+set "CATALINA_HOME=%cd%"
+cd "%CURRENT_DIR%"
+:gotHome
+if exist "%CATALINA_HOME%\bin\tool-wrapper.bat" goto okHome
+echo The CATALINA_HOME environment variable is not defined correctly
+echo This environment variable is needed to run this program
+goto end
+:okHome
+
+set "EXECUTABLE=%CATALINA_HOME%\bin\tool-wrapper.bat"
+
+rem Check that target executable exists
+if exist "%EXECUTABLE%" goto okExec
+echo Cannot find "%EXECUTABLE%"
+echo This file is needed to run this program
+goto end
+:okExec
+
+rem Get remaining unshifted command line arguments and save them in the
+set CMD_LINE_ARGS=
+:setArgs
+if ""%1""=="""" goto doneSetArgs
+set CMD_LINE_ARGS=%CMD_LINE_ARGS% %1
+shift
+goto setArgs
+:doneSetArgs
+
+call "%EXECUTABLE%" -server org.apache.catalina.realm.RealmBase %CMD_LINE_ARGS%
+
+:end
+
+#!/bin/sh
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# -----------------------------------------------------------------------------
+# Script to digest password using the algorithm specified
+# -----------------------------------------------------------------------------
+
+# Better OS/400 detection: see Bugzilla 31132
+os400=false
+case "`uname`" in
+OS400*) os400=true;;
+esac
+
+# resolve links - $0 may be a softlink
+PRG="$0"
+
+while [ -h "$PRG" ] ; do
+  ls=`ls -ld "$PRG"`
+  link=`expr "$ls" : '.*-> \(.*\)$'`
+  if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+  else
+    PRG=`dirname "$PRG"`/"$link"
+  fi
+done
+
+PRGDIR=`dirname "$PRG"`
+EXECUTABLE=tool-wrapper.sh
+
+# Check that target executable exists
+if $os400; then
+  # -x will Only work on the os400 if the files are:
+  # 1. owned by the user
+  # 2. owned by the PRIMARY group of the user
+  # this will not work if the user belongs in secondary groups
+  eval
+else
+  if [ ! -x "$PRGDIR"/"$EXECUTABLE" ]; then
+    echo "Cannot find $PRGDIR/$EXECUTABLE"
+    echo "The file is absent or does not have execute permission"
+    echo "This file is needed to run this program"
+    exit 1
+  fi
+fi
+
+exec "$PRGDIR"/"$EXECUTABLE" -server org.apache.catalina.realm.RealmBase "$@"
+
+@echo off
+rem Licensed to the Apache Software Foundation (ASF) under one or more
+rem contributor license agreements.  See the NOTICE file distributed with
+rem this work for additional information regarding copyright ownership.
+rem The ASF licenses this file to You under the Apache License, Version 2.0
+rem (the "License"); you may not use this file except in compliance with
+rem the License.  You may obtain a copy of the License at
+rem
+rem     http://www.apache.org/licenses/LICENSE-2.0
+rem
+rem Unless required by applicable law or agreed to in writing, software
+rem distributed under the License is distributed on an "AS IS" BASIS,
+rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+rem See the License for the specific language governing permissions and
+rem limitations under the License.
+
+rem ---------------------------------------------------------------------------
+rem Set JAVA_HOME or JRE_HOME if not already set, ensure any provided settings
+rem are valid and consistent with the selected start-up options and set up the
+rem endorsed directory.
+rem ---------------------------------------------------------------------------
+
+rem Make sure prerequisite environment variables are set
+
+rem In debug mode we need a real JDK (JAVA_HOME)
+if ""%1"" == ""debug"" goto needJavaHome
+
+rem Otherwise either JRE or JDK are fine
+if not "%JRE_HOME%" == "" goto gotJreHome
+if not "%JAVA_HOME%" == "" goto gotJavaHome
+echo Neither the JAVA_HOME nor the JRE_HOME environment variable is defined
+echo At least one of these environment variable is needed to run this program
+goto exit
+
+:needJavaHome
+rem Check if we have a usable JDK
+if "%JAVA_HOME%" == "" goto noJavaHome
+if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHome
+if not exist "%JAVA_HOME%\bin\jdb.exe" goto noJavaHome
+if not exist "%JAVA_HOME%\bin\javac.exe" goto noJavaHome
+set "JRE_HOME=%JAVA_HOME%"
+goto okJava
+
+:noJavaHome
+echo The JAVA_HOME environment variable is not defined correctly.
+echo It is needed to run this program in debug mode.
+echo NB: JAVA_HOME should point to a JDK not a JRE.
+goto exit
+
+:gotJavaHome
+rem No JRE given, use JAVA_HOME as JRE_HOME
+set "JRE_HOME=%JAVA_HOME%"
+
+:gotJreHome
+rem Check if we have a usable JRE
+if not exist "%JRE_HOME%\bin\java.exe" goto noJreHome
+goto okJava
+
+:noJreHome
+rem Needed at least a JRE
+echo The JRE_HOME environment variable is not defined correctly
+echo This environment variable is needed to run this program
+goto exit
+
+:okJava
+rem Don't override the endorsed dir if the user has set it previously
+if not "%JAVA_ENDORSED_DIRS%" == "" goto gotEndorseddir
+rem Java 9 no longer supports the java.endorsed.dirs
+rem system property. Only try to use it if
+rem CATALINA_HOME/endorsed exists.
+if not exist "%CATALINA_HOME%\endorsed" goto gotEndorseddir
+set "JAVA_ENDORSED_DIRS=%CATALINA_HOME%\endorsed"
+:gotEndorseddir
+
+rem Don't override _RUNJAVA if the user has set it previously
+if not "%_RUNJAVA%" == "" goto gotRunJava
+rem Set standard command for invoking Java.
+rem Also note the quoting as JRE_HOME may contain spaces.
+set _RUNJAVA="%JRE_HOME%\bin\java.exe"
+:gotRunJava
+
+rem Don't override _RUNJDB if the user has set it previously
+rem Also note the quoting as JAVA_HOME may contain spaces.
+if not "%_RUNJDB%" == "" goto gotRunJdb
+set _RUNJDB="%JAVA_HOME%\bin\jdb.exe"
+:gotRunJdb
+
+goto end
+
+:exit
+exit /b 1
+
+:end
+exit /b 0
+
+#!/bin/sh
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# -----------------------------------------------------------------------------
+#  Set JAVA_HOME or JRE_HOME if not already set, ensure any provided settings
+#  are valid and consistent with the selected start-up options and set up the
+#  endorsed directory.
+# -----------------------------------------------------------------------------
+
+# Make sure prerequisite environment variables are set
+if [ -z "$JAVA_HOME" ] && [ -z "$JRE_HOME" ]; then
+  if $darwin; then
+    # Bugzilla 54390
+    if [ -x '/usr/libexec/java_home' ] ; then
+      export JAVA_HOME=`/usr/libexec/java_home`
+    # Bugzilla 37284 (reviewed).
+    elif [ -d "/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Home" ]; then
+      export JAVA_HOME="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Home"
+    fi
+  else
+    JAVA_PATH=`which java 2>/dev/null`
+    if [ "x$JAVA_PATH" != "x" ]; then
+      JAVA_PATH=`dirname "$JAVA_PATH" 2>/dev/null`
+      JRE_HOME=`dirname "$JAVA_PATH" 2>/dev/null`
+    fi
+    if [ "x$JRE_HOME" = "x" ]; then
+      # XXX: Should we try other locations?
+      if [ -x /usr/bin/java ]; then
+        JRE_HOME=/usr
+      fi
+    fi
+  fi
+  if [ -z "$JAVA_HOME" ] && [ -z "$JRE_HOME" ]; then
+    echo "Neither the JAVA_HOME nor the JRE_HOME environment variable is defined"
+    echo "At least one of these environment variable is needed to run this program"
+    exit 1
+  fi
+fi
+if [ -z "$JAVA_HOME" ] && [ "$1" = "debug" ]; then
+  echo "JAVA_HOME should point to a JDK in order to run in debug mode."
+  exit 1
+fi
+if [ -z "$JRE_HOME" ]; then
+  JRE_HOME="$JAVA_HOME"
+fi
+
+# If we're running under jdb, we need a full jdk.
+if [ "$1" = "debug" ] ; then
+  if [ "$os400" = "true" ]; then
+    if [ ! -x "$JAVA_HOME"/bin/java ] || [ ! -x "$JAVA_HOME"/bin/javac ]; then
+      echo "The JAVA_HOME environment variable is not defined correctly"
+      echo "This environment variable is needed to run this program"
+      echo "NB: JAVA_HOME should point to a JDK not a JRE"
+      exit 1
+    fi
+  else
+    if [ ! -x "$JAVA_HOME"/bin/java ] || [ ! -x "$JAVA_HOME"/bin/jdb ] || [ ! -x "$JAVA_HOME"/bin/javac ]; then
+      echo "The JAVA_HOME environment variable is not defined correctly"
+      echo "This environment variable is needed to run this program"
+      echo "NB: JAVA_HOME should point to a JDK not a JRE"
+      exit 1
+    fi
+  fi
+fi
+
+# Don't override the endorsed dir if the user has set it previously
+if [ -z "$JAVA_ENDORSED_DIRS" ]; then
+  # Java 9 no longer supports the java.endorsed.dirs
+  # system property. Only try to use it if
+  # CATALINA_HOME/endorsed exists.
+  if [ -d "$CATALINA_HOME"/endorsed ]; then
+    JAVA_ENDORSED_DIRS="$CATALINA_HOME"/endorsed
+  fi
+fi
+
+# Set standard commands for invoking Java, if not already set.
+if [ -z "$_RUNJAVA" ]; then
+  _RUNJAVA="$JRE_HOME"/bin/java
+fi
+if [ "$os400" != "true" ]; then
+  if [ -z "$_RUNJDB" ]; then
+    _RUNJDB="$JAVA_HOME"/bin/jdb
+  fi
+fi
+
+@echo off
+rem Licensed to the Apache Software Foundation (ASF) under one or more
+rem contributor license agreements.  See the NOTICE file distributed with
+rem this work for additional information regarding copyright ownership.
+rem The ASF licenses this file to You under the Apache License, Version 2.0
+rem (the "License"); you may not use this file except in compliance with
+rem the License.  You may obtain a copy of the License at
+rem
+rem     http://www.apache.org/licenses/LICENSE-2.0
+rem
+rem Unless required by applicable law or agreed to in writing, software
+rem distributed under the License is distributed on an "AS IS" BASIS,
+rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+rem See the License for the specific language governing permissions and
+rem limitations under the License.
+
+rem ---------------------------------------------------------------------------
+rem Stop script for the CATALINA Server
+rem ---------------------------------------------------------------------------
+
+setlocal
+
+rem Guess CATALINA_HOME if not defined
+set "CURRENT_DIR=%cd%"
+if not "%CATALINA_HOME%" == "" goto gotHome
+set "CATALINA_HOME=%CURRENT_DIR%"
+if exist "%CATALINA_HOME%\bin\catalina.bat" goto okHome
+cd ..
+set "CATALINA_HOME=%cd%"
+cd "%CURRENT_DIR%"
+:gotHome
+if exist "%CATALINA_HOME%\bin\catalina.bat" goto okHome
+echo The CATALINA_HOME environment variable is not defined correctly
+echo This environment variable is needed to run this program
+goto end
+:okHome
+
+set "EXECUTABLE=%CATALINA_HOME%\bin\catalina.bat"
+
+rem Check that target executable exists
+if exist "%EXECUTABLE%" goto okExec
+echo Cannot find "%EXECUTABLE%"
+echo This file is needed to run this program
+goto end
+:okExec
+
+rem Get remaining unshifted command line arguments and save them in the
+set CMD_LINE_ARGS=
+:setArgs
+if ""%1""=="""" goto doneSetArgs
+set CMD_LINE_ARGS=%CMD_LINE_ARGS% %1
+shift
+goto setArgs
+:doneSetArgs
+
+call "%EXECUTABLE%" stop %CMD_LINE_ARGS%
+
+:end
+
+#!/bin/sh
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# -----------------------------------------------------------------------------
+# Stop script for the CATALINA Server
+# -----------------------------------------------------------------------------
+
+# Better OS/400 detection: see Bugzilla 31132
+os400=false
+case "`uname`" in
+OS400*) os400=true;;
+esac
+
+# resolve links - $0 may be a softlink
+PRG="$0"
+
+while [ -h "$PRG" ] ; do
+  ls=`ls -ld "$PRG"`
+  link=`expr "$ls" : '.*-> \(.*\)$'`
+  if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+  else
+    PRG=`dirname "$PRG"`/"$link"
+  fi
+done
+
+PRGDIR=`dirname "$PRG"`
+EXECUTABLE=catalina.sh
+
+# Check that target executable exists
+if $os400; then
+  # -x will Only work on the os400 if the files are:
+  # 1. owned by the user
+  # 2. owned by the PRIMARY group of the user
+  # this will not work if the user belongs in secondary groups
+  eval
+else
+  if [ ! -x "$PRGDIR"/"$EXECUTABLE" ]; then
+    echo "Cannot find $PRGDIR/$EXECUTABLE"
+    echo "The file is absent or does not have execute permission"
+    echo "This file is needed to run this program"
+    exit 1
+  fi
+fi
+
+exec "$PRGDIR"/"$EXECUTABLE" stop "$@"
+
+@echo off
+rem Licensed to the Apache Software Foundation (ASF) under one or more
+rem contributor license agreements.  See the NOTICE file distributed with
+rem this work for additional information regarding copyright ownership.
+rem The ASF licenses this file to You under the Apache License, Version 2.0
+rem (the "License"); you may not use this file except in compliance with
+rem the License.  You may obtain a copy of the License at
+rem
+rem     http://www.apache.org/licenses/LICENSE-2.0
+rem
+rem Unless required by applicable law or agreed to in writing, software
+rem distributed under the License is distributed on an "AS IS" BASIS,
+rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+rem See the License for the specific language governing permissions and
+rem limitations under the License.
+
+rem ---------------------------------------------------------------------------
+rem Start script for the CATALINA Server
+rem ---------------------------------------------------------------------------
+
+setlocal
+
+rem Guess CATALINA_HOME if not defined
+set "CURRENT_DIR=%cd%"
+if not "%CATALINA_HOME%" == "" goto gotHome
+set "CATALINA_HOME=%CURRENT_DIR%"
+if exist "%CATALINA_HOME%\bin\catalina.bat" goto okHome
+cd ..
+set "CATALINA_HOME=%cd%"
+cd "%CURRENT_DIR%"
+:gotHome
+if exist "%CATALINA_HOME%\bin\catalina.bat" goto okHome
+echo The CATALINA_HOME environment variable is not defined correctly
+echo This environment variable is needed to run this program
+goto end
+:okHome
+
+set "EXECUTABLE=%CATALINA_HOME%\bin\catalina.bat"
+
+rem Check that target executable exists
+if exist "%EXECUTABLE%" goto okExec
+echo Cannot find "%EXECUTABLE%"
+echo This file is needed to run this program
+goto end
+:okExec
+
+rem Get remaining unshifted command line arguments and save them in the
+set CMD_LINE_ARGS=
+:setArgs
+if ""%1""=="""" goto doneSetArgs
+set CMD_LINE_ARGS=%CMD_LINE_ARGS% %1
+shift
+goto setArgs
+:doneSetArgs
+
+call "%EXECUTABLE%" start %CMD_LINE_ARGS%
+
+:end
+
+#!/bin/sh
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# -----------------------------------------------------------------------------
+# Start Script for the CATALINA Server
+# -----------------------------------------------------------------------------
+
+# Better OS/400 detection: see Bugzilla 31132
+os400=false
+case "`uname`" in
+OS400*) os400=true;;
+esac
+
+# resolve links - $0 may be a softlink
+PRG="$0"
+
+while [ -h "$PRG" ] ; do
+  ls=`ls -ld "$PRG"`
+  link=`expr "$ls" : '.*-> \(.*\)$'`
+  if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+  else
+    PRG=`dirname "$PRG"`/"$link"
+  fi
+done
+
+PRGDIR=`dirname "$PRG"`
+EXECUTABLE=catalina.sh
+
+# Check that target executable exists
+if $os400; then
+  # -x will Only work on the os400 if the files are:
+  # 1. owned by the user
+  # 2. owned by the PRIMARY group of the user
+  # this will not work if the user belongs in secondary groups
+  eval
+else
+  if [ ! -x "$PRGDIR"/"$EXECUTABLE" ]; then
+    echo "Cannot find $PRGDIR/$EXECUTABLE"
+    echo "The file is absent or does not have execute permission"
+    echo "This file is needed to run this program"
+    exit 1
+  fi
+fi
+
+exec "$PRGDIR"/"$EXECUTABLE" start "$@"
+
+
+
+@echo off
+rem Licensed to the Apache Software Foundation (ASF) under one or more
+rem contributor license agreements.  See the NOTICE file distributed with
+rem this work for additional information regarding copyright ownership.
+rem The ASF licenses this file to You under the Apache License, Version 2.0
+rem (the "License"); you may not use this file except in compliance with
+rem the License.  You may obtain a copy of the License at
+rem
+rem     http://www.apache.org/licenses/LICENSE-2.0
+rem
+rem Unless required by applicable law or agreed to in writing, software
+rem distributed under the License is distributed on an "AS IS" BASIS,
+rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+rem See the License for the specific language governing permissions and
+rem limitations under the License.
+
+rem ---------------------------------------------------------------------------
+rem Wrapper script for command line tools
+rem
+rem Environment Variable Prerequisites
+rem
+rem   CATALINA_HOME   May point at your Catalina "build" directory.
+rem
+rem   TOOL_OPTS       (Optional) Java runtime options.
+rem
+rem   JAVA_HOME       Must point at your Java Development Kit installation.
+rem                   Using JRE_HOME instead works as well.
+rem
+rem   JRE_HOME        Must point at your Java Runtime installation.
+rem                   Defaults to JAVA_HOME if empty. If JRE_HOME and JAVA_HOME
+rem                   are both set, JRE_HOME is used.
+rem
+rem   JAVA_OPTS       (Optional) Java runtime options.
+rem
+rem   JAVA_ENDORSED_DIRS (Optional) Lists of of semi-colon separated directories
+rem                   containing some jars in order to allow replacement of APIs
+rem                   created outside of the JCP (i.e. DOM and SAX from W3C).
+rem                   It can also be used to update the XML parser implementation.
+rem                   This is only supported for Java <= 8.
+rem                   Defaults to $CATALINA_HOME/endorsed.
+rem ---------------------------------------------------------------------------
+
+setlocal
+
+rem Guess CATALINA_HOME if not defined
+set "CURRENT_DIR=%cd%"
+if not "%CATALINA_HOME%" == "" goto gotHome
+set "CATALINA_HOME=%CURRENT_DIR%"
+if exist "%CATALINA_HOME%\bin\tool-wrapper.bat" goto okHome
+cd ..
+set "CATALINA_HOME=%cd%"
+cd "%CURRENT_DIR%"
+:gotHome
+if exist "%CATALINA_HOME%\bin\tool-wrapper.bat" goto okHome
+echo The CATALINA_HOME environment variable is not defined correctly
+echo This environment variable is needed to run this program
+goto end
+:okHome
+
+rem Ensure that any user defined CLASSPATH variables are not used on startup,
+rem but allow them to be specified in setenv.bat, in rare case when it is needed.
+set CLASSPATH=
+
+rem Get standard environment variables
+if exist "%CATALINA_HOME%\bin\setenv.bat" call "%CATALINA_HOME%\bin\setenv.bat"
+
+rem Get standard Java environment variables
+if exist "%CATALINA_HOME%\bin\setclasspath.bat" goto okSetclasspath
+echo Cannot find "%CATALINA_HOME%\bin\setclasspath.bat"
+echo This file is needed to run this program
+goto end
+:okSetclasspath
+call "%CATALINA_HOME%\bin\setclasspath.bat" %1
+if errorlevel 1 goto end
+
+rem Add on extra jar files to CLASSPATH
+rem Note that there are no quotes as we do not want to introduce random
+rem quotes into the CLASSPATH
+if "%CLASSPATH%" == "" goto emptyClasspath
+set "CLASSPATH=%CLASSPATH%;"
+:emptyClasspath
+set "CLASSPATH=%CLASSPATH%%CATALINA_HOME%\bin\bootstrap.jar;%CATALINA_HOME%\bin\tomcat-juli.jar;%CATALINA_HOME%\lib\servlet-api.jar;%CATALINA_HOME%\lib\tomcat-coyote.jar"
+
+set JAVA_OPTS=%JAVA_OPTS% -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+
+rem Java 9 no longer supports the java.endorsed.dirs
+rem system property. Only try to use it if
+rem JAVA_ENDORSED_DIRS was explicitly set
+rem or CATALINA_HOME/endorsed exists.
+set ENDORSED_PROP=ignore.endorsed.dirs
+if "%JAVA_ENDORSED_DIRS%" == "" goto noEndorsedVar
+set ENDORSED_PROP=java.endorsed.dirs
+goto doneEndorsed
+:noEndorsedVar
+if not exist "%CATALINA_HOME%\endorsed" goto doneEndorsed
+set ENDORSED_PROP=java.endorsed.dirs
+:doneEndorsed
+
+rem Get remaining unshifted command line arguments and save them in the
+set CMD_LINE_ARGS=
+:setArgs
+if ""%1""=="""" goto doneSetArgs
+set CMD_LINE_ARGS=%CMD_LINE_ARGS% %1
+shift
+goto setArgs
+:doneSetArgs
+
+%_RUNJAVA% %JAVA_OPTS% %TOOL_OPTS% -D%ENDORSED_PROP%="%JAVA_ENDORSED_DIRS%" -classpath "%CLASSPATH%" -Dcatalina.home="%CATALINA_HOME%" org.apache.catalina.startup.Tool %CMD_LINE_ARGS%
+
+:end
+
+#!/bin/sh
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# -----------------------------------------------------------------------------
+# Wrapper script for command line tools
+#
+# Environment Variable Prerequisites
+#
+#   CATALINA_HOME   May point at your Catalina "build" directory.
+#
+#   TOOL_OPTS       (Optional) Java runtime options.
+#
+#   JAVA_HOME       Must point at your Java Development Kit installation.
+#                   Using JRE_HOME instead works as well.
+#
+#   JRE_HOME        Must point at your Java Runtime installation.
+#                   Defaults to JAVA_HOME if empty. If JRE_HOME and JAVA_HOME
+#                   are both set, JRE_HOME is used.
+#
+#   JAVA_OPTS       (Optional) Java runtime options.
+#
+#   JAVA_ENDORSED_DIRS (Optional) Lists of of colon separated directories
+#                   containing some jars in order to allow replacement of APIs
+#                   created outside of the JCP (i.e. DOM and SAX from W3C).
+#                   It can also be used to update the XML parser implementation.
+#                   This is only supported for Java <= 8.
+#                   Defaults to $CATALINA_HOME/endorsed.
+# -----------------------------------------------------------------------------
+
+# OS specific support.  $var _must_ be set to either true or false.
+cygwin=false
+darwin=false
+os400=false
+case "`uname`" in
+CYGWIN*) cygwin=true;;
+Darwin*) darwin=true;;
+OS400*) os400=true;;
+esac
+
+# resolve links - $0 may be a softlink
+PRG="$0"
+
+while [ -h "$PRG" ]; do
+  ls=`ls -ld "$PRG"`
+  link=`expr "$ls" : '.*-> \(.*\)$'`
+  if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+  else
+    PRG=`dirname "$PRG"`/"$link"
+  fi
+done
+
+# Get standard environment variables
+PRGDIR=`dirname "$PRG"`
+
+# Only set CATALINA_HOME if not already set
+[ -z "$CATALINA_HOME" ] && CATALINA_HOME=`cd "$PRGDIR/.." >/dev/null; pwd`
+
+# Ensure that any user defined CLASSPATH variables are not used on startup,
+# but allow them to be specified in setenv.sh, in rare case when it is needed.
+CLASSPATH=
+
+if [ -r "$CATALINA_HOME/bin/setenv.sh" ]; then
+  . "$CATALINA_HOME/bin/setenv.sh"
+fi
+
+# For Cygwin, ensure paths are in UNIX format before anything is touched
+if $cygwin; then
+  [ -n "$JAVA_HOME" ] && JAVA_HOME=`cygpath --unix "$JAVA_HOME"`
+  [ -n "$JRE_HOME" ] && JRE_HOME=`cygpath --unix "$JRE_HOME"`
+  [ -n "$CATALINA_HOME" ] && CATALINA_HOME=`cygpath --unix "$CATALINA_HOME"`
+  [ -n "$CLASSPATH" ] && CLASSPATH=`cygpath --path --unix "$CLASSPATH"`
+fi
+
+# For OS400
+if $os400; then
+  # Set job priority to standard for interactive (interactive - 6) by using
+  # the interactive priority - 6, the helper threads that respond to requests
+  # will be running at the same priority as interactive jobs.
+  COMMAND='chgjob job('$JOBNAME') runpty(6)'
+  system $COMMAND
+
+  # Enable multi threading
+  export QIBM_MULTI_THREADED=Y
+fi
+
+# Get standard Java environment variables
+if $os400; then
+  # -r will Only work on the os400 if the files are:
+  # 1. owned by the user
+  # 2. owned by the PRIMARY group of the user
+  # this will not work if the user belongs in secondary groups
+  . "$CATALINA_HOME"/bin/setclasspath.sh
+else
+  if [ -r "$CATALINA_HOME"/bin/setclasspath.sh ]; then
+    . "$CATALINA_HOME"/bin/setclasspath.sh
+  else
+    echo "Cannot find $CATALINA_HOME/bin/setclasspath.sh"
+    echo "This file is needed to run this program"
+    exit 1
+  fi
+fi
+
+# Add on extra jar files to CLASSPATH
+if [ ! -z "$CLASSPATH" ] ; then
+  CLASSPATH="$CLASSPATH":
+fi
+CLASSPATH="$CLASSPATH""$CATALINA_HOME"/bin/bootstrap.jar:"$CATALINA_HOME"/bin/tomcat-juli.jar:"$CATALINA_HOME"/lib/servlet-api.jar:"$CATALINA_HOME"/lib/tomcat-coyote.jar
+
+# For Cygwin, switch paths to Windows format before running java
+if $cygwin; then
+  JAVA_HOME=`cygpath --absolute --windows "$JAVA_HOME"`
+  JRE_HOME=`cygpath --absolute --windows "$JRE_HOME"`
+  CATALINA_HOME=`cygpath --absolute --windows "$CATALINA_HOME"`
+  CLASSPATH=`cygpath --path --windows "$CLASSPATH"`
+  [ -n "$JAVA_ENDORSED_DIRS" ] && JAVA_ENDORSED_DIRS=`cygpath --path --windows "$JAVA_ENDORSED_DIRS"`
+fi
+
+# Java 9 no longer supports the java.endorsed.dirs
+# system property. Only try to use it if
+# JAVA_ENDORSED_DIRS was explicitly set
+# or CATALINA_HOME/endorsed exists.
+ENDORSED_PROP=ignore.endorsed.dirs
+if [ -n "$JAVA_ENDORSED_DIRS" ]; then
+    ENDORSED_PROP=java.endorsed.dirs
+fi
+if [ -d "$CATALINA_HOME/endorsed" ]; then
+    ENDORSED_PROP=java.endorsed.dirs
+fi
+
+JAVA_OPTS="$JAVA_OPTS -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager"
+
+# ----- Execute The Requested Command -----------------------------------------
+
+eval exec "\"$_RUNJAVA\"" "$JAVA_OPTS" "$TOOL_OPTS" \
+  -D$ENDORSED_PROP="\"$JAVA_ENDORSED_DIRS\"" \
+  -classpath "\"$CLASSPATH\"" \
+  -Dcatalina.home="\"$CATALINA_HOME\"" \
+  org.apache.catalina.startup.Tool "$@"
+
+@echo off
+rem Licensed to the Apache Software Foundation (ASF) under one or more
+rem contributor license agreements.  See the NOTICE file distributed with
+rem this work for additional information regarding copyright ownership.
+rem The ASF licenses this file to You under the Apache License, Version 2.0
+rem (the "License"); you may not use this file except in compliance with
+rem the License.  You may obtain a copy of the License at
+rem
+rem     http://www.apache.org/licenses/LICENSE-2.0
+rem
+rem Unless required by applicable law or agreed to in writing, software
+rem distributed under the License is distributed on an "AS IS" BASIS,
+rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+rem See the License for the specific language governing permissions and
+rem limitations under the License.
+
+rem ---------------------------------------------------------------------------
+rem Version script for the CATALINA Server
+rem ---------------------------------------------------------------------------
+
+setlocal
+
+rem Guess CATALINA_HOME if not defined
+set "CURRENT_DIR=%cd%"
+if not "%CATALINA_HOME%" == "" goto gotHome
+set "CATALINA_HOME=%CURRENT_DIR%"
+if exist "%CATALINA_HOME%\bin\catalina.bat" goto okHome
+cd ..
+set "CATALINA_HOME=%cd%"
+cd "%CURRENT_DIR%"
+:gotHome
+if exist "%CATALINA_HOME%\bin\catalina.bat" goto okHome
+echo The CATALINA_HOME environment variable is not defined correctly
+echo This environment variable is needed to run this program
+goto end
+:okHome
+
+set "EXECUTABLE=%CATALINA_HOME%\bin\catalina.bat"
+
+rem Check that target executable exists
+if exist "%EXECUTABLE%" goto okExec
+echo Cannot find "%EXECUTABLE%"
+echo This file is needed to run this program
+goto end
+:okExec
+
+rem Get remaining unshifted command line arguments and save them in the
+set CMD_LINE_ARGS=
+:setArgs
+if ""%1""=="""" goto doneSetArgs
+set CMD_LINE_ARGS=%CMD_LINE_ARGS% %1
+shift
+goto setArgs
+:doneSetArgs
+
+call "%EXECUTABLE%" version %CMD_LINE_ARGS%
+
+:end
+
+#!/bin/sh
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# -----------------------------------------------------------------------------
+# Version Script for the CATALINA Server
+# -----------------------------------------------------------------------------
+
+# Better OS/400 detection: see Bugzilla 31132
+os400=false
+case "`uname`" in
+OS400*) os400=true;;
+esac
+
+# resolve links - $0 may be a softlink
+PRG="$0"
+
+while [ -h "$PRG" ] ; do
+  ls=`ls -ld "$PRG"`
+  link=`expr "$ls" : '.*-> \(.*\)$'`
+  if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+  else
+    PRG=`dirname "$PRG"`/"$link"
+  fi
+done
+
+PRGDIR=`dirname "$PRG"`
+EXECUTABLE=catalina.sh
+
+# Check that target executable exists
+if $os400; then
+  # -x will Only work on the os400 if the files are:
+  # 1. owned by the user
+  # 2. owned by the PRIMARY group of the user
+  # this will not work if the user belongs in secondary groups
+  eval
+else
+  if [ ! -x "$PRGDIR"/"$EXECUTABLE" ]; then
+    echo "Cannot find $PRGDIR/$EXECUTABLE"
+    echo "The file is absent or does not have execute permission"
+    echo "This file is needed to run this program"
+    exit 1
+  fi
+fi
+
+exec "$PRGDIR"/"$EXECUTABLE" version "$@"
